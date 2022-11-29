@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:path/path.dart';
 import 'package:prayer_time_silencer/services/get_device_location.dart';
 import 'package:prayer_time_silencer/services/get_prayer_times.dart';
 import 'package:prayer_time_silencer/services/set_device_silent.dart';
@@ -15,15 +14,10 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   late double latitude;
   late double longitude;
-  final int day = DateTime.now().day;
+  final int day = DateTime.now().day - 1;
   final int month = DateTime.now().month;
   final int year = DateTime.now().year;
 
-  // String Fajr = '00:00';
-  // String Dhuhr = '00:00';
-  // String Asr = '00:00';
-  // String Maghrib = '00:00';
-  // String Isha = '00:00';
   Map<String, String> prayers = {
     'Fajr': '00:00',
     'Dhuhr': '00:00',
@@ -35,8 +29,6 @@ class _HomeState extends State<Home> {
   late var data;
   @override
   Widget build(BuildContext context) {
-    data = ModalRoute.of(context)?.settings.arguments as Map;
-    int day = 12 - 1;
     return Scaffold(
       backgroundColor: Colors.grey[900],
       body: Center(
@@ -76,7 +68,6 @@ class _HomeState extends State<Home> {
             ),
           ),
           ListView.builder(
-              scrollDirection: Axis.vertical,
               shrinkWrap: true,
               itemCount: prayers.length,
               itemBuilder: ((context, index) {

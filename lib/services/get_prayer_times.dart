@@ -18,22 +18,14 @@ class TimingsStorage {
     return File('$path/timings.json');
   }
 
-  Future<String> readTimings() async {
+  Future<dynamic> readTimings() async {
     try {
       final file = await _localFile;
-      if (file.existsSync()) {
-        // Read the file
-        final contents = await file.readAsString();
-        return jsonDecode(contents);
-      } else {
-        final path = await _localPath;
-        File('$path/timings.json').create(recursive: true);
-        final contents = await file.readAsString();
-        return jsonDecode(contents);
-      }
+      final contents = await file.readAsString();
+      return jsonDecode(contents);
     } catch (e) {
       // If encountering an error, return 0
-      print(e);
+      print(' is this from here perhapse ?? $e');
       return '';
     }
   }
@@ -53,7 +45,7 @@ class Timings {
   late int month;
   late int year;
   late var data;
-  final TimingsStorage storage = TimingsStorage();
+  final TimingsStorage timingsstorage = TimingsStorage();
 
   Timings(
       {required this.lat,
@@ -64,14 +56,33 @@ class Timings {
 
   Future<void> getTimings() async {
     try {
+      final file = await timingsstorage._localFile;
+      final contents = await file.readAsString();
+      data = jsonDecode(contents);
+
+      if (lat == data[0]['meta']['latitude'] &&
+          long == data[0]['meta']['longitude']) {
+        data = data;
+      } else {
+        try {
+          Response response = await get(Uri.parse(
+              'http://api.aladhan.com/v1/calendar?latitude=$lat&longitude=$long&month=$month&year=$year'));
+          data = jsonDecode(response.body)["data"];
+          print('accessed api');
+          // print(data);
+          TimingsStorage().writeTimings(data);
+        } catch (e) {
+          print(' this is from here $e');
+        }
+      }
+    } catch (e) {
+      print('this is from over head wow $e');
       Response response = await get(Uri.parse(
           'http://api.aladhan.com/v1/calendar?latitude=$lat&longitude=$long&month=$month&year=$year'));
       data = jsonDecode(response.body)["data"];
       print('accessed api');
       // print(data);
       TimingsStorage().writeTimings(data);
-    } catch (e) {
-      print(e);
     }
   }
 }
