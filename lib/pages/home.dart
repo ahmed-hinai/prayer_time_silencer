@@ -17,6 +17,7 @@ class _HomeState extends State<Home> {
   final int day = DateTime.now().day - 1;
   final int month = DateTime.now().month;
   final int year = DateTime.now().year;
+  var icon = Icon(Icons.notifications);
 
   Map<String, String> prayers = {
     'Fajr': '00:00',
@@ -32,9 +33,21 @@ class _HomeState extends State<Home> {
     return Scaffold(
       backgroundColor: Colors.grey[900],
       body: Center(
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
+          IconButton(
+            color: Colors.white,
+            onPressed: () {
+              MuteSystemSounds().muteSystemSounds();
+              setState(() {
+                icon = Icon(Icons.notifications_off);
+              });
+            },
+            icon: icon,
+            iconSize: 80.0,
+            tooltip: 'silence wench',
+          ),
           Padding(
-            padding: const EdgeInsets.all(28.0),
+            padding: const EdgeInsets.all(18.0),
             child: TextField(
               onSubmitted: ((text) async {
                 GetLocation newLocation = GetLocation(location: text);
@@ -68,6 +81,7 @@ class _HomeState extends State<Home> {
             ),
           ),
           ListView.builder(
+              physics: const NeverScrollableScrollPhysics(),
               shrinkWrap: true,
               itemCount: prayers.length,
               itemBuilder: ((context, index) {
@@ -82,14 +96,16 @@ class _HomeState extends State<Home> {
                           Expanded(
                             child: Card(
                               shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20.0)),
+                                  borderRadius: BorderRadius.circular(70.0)),
                               child: Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: Center(
                                   child: Text(
                                     '${prayers.keys.toList()[index]}',
                                     style: TextStyle(
-                                        color: Colors.black, fontSize: 26.0),
+                                        color: Colors.grey[800],
+                                        fontSize: 16.0,
+                                        fontWeight: FontWeight.bold),
                                   ),
                                 ),
                               ),
@@ -98,14 +114,16 @@ class _HomeState extends State<Home> {
                           Expanded(
                             child: Card(
                               shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20.0)),
+                                  borderRadius: BorderRadius.circular(70.0)),
                               child: Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: Center(
                                   child: Text(
                                     '${prayers.values.toList()[index]}',
                                     style: TextStyle(
-                                        color: Colors.black, fontSize: 26.0),
+                                        color: Colors.grey[800],
+                                        fontSize: 16.0,
+                                        fontWeight: FontWeight.bold),
                                   ),
                                 ),
                               ),
@@ -117,12 +135,10 @@ class _HomeState extends State<Home> {
                   ),
                 );
               })),
+          SizedBox(
+            height: 40.0,
+          ),
         ]),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          MuteSystemSounds().muteSystemSounds();
-        },
       ),
     );
   }
