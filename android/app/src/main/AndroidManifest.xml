@@ -5,11 +5,31 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <!-- For apps with targetSDK=31 (Android 12) -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
    <application
         android:requestLegacyExternalStorage="true"
         android:label="prayer_time_silencer"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+
+        <service
+        android:name="dev.fluttercommunity.plus.androidalarmmanager.AlarmService"
+        android:permission="android.permission.BIND_JOB_SERVICE"
+        android:exported="false"/>
+        <receiver
+        android:name="dev.fluttercommunity.plus.androidalarmmanager.AlarmBroadcastReceiver"
+        android:exported="false"/>
+        <receiver
+        android:name="dev.fluttercommunity.plus.androidalarmmanager.RebootBroadcastReceiver"
+        android:enabled="false"
+        android:exported="false">
+        <intent-filter>
+        <action android:name="android.intent.action.BOOT_COMPLETED" />
+        </intent-filter>
+        </receiver>
         
         <activity
             android:name=".MainActivity"
@@ -38,5 +58,7 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+            
     </application>
 </manifest>

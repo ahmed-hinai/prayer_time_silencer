@@ -4,7 +4,6 @@ import 'package:sound_mode/permission_handler.dart';
 
 class MuteSystemSounds {
   late bool isGranted;
-
   Future<void> muteSystemSounds() async {
     isGranted = (await PermissionHandler.permissionsGranted)!;
     if (!isGranted) {
@@ -13,6 +12,7 @@ class MuteSystemSounds {
     }
     if (isGranted) {
       try {
+        print('someone called me!!!');
         await SoundMode.setSoundMode(RingerModeStatus.silent);
       } catch (e) {
         print('Please enable permissions required');

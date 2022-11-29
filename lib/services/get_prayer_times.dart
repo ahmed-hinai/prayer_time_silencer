@@ -1,4 +1,3 @@
-//'http://api.aladhan.com/v1/calendar?latitude=$lat&longitude=$long&month=$month&year=$year'
 import 'package:http/http.dart';
 import 'dart:async';
 import 'dart:convert';
