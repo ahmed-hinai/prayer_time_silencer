@@ -31,26 +31,76 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        elevation: 1.0,
+        title: Text("Get Prayer timings"),
+        centerTitle: true,
+        backgroundColor: Colors.grey[900],
+        actions: [
+          PopupMenuButton<String>(
+            itemBuilder: (BuildContext context) {
+              return {'Logout', 'Settings'}.map((String choice) {
+                return PopupMenuItem<String>(
+                  value: choice,
+                  child: Text(choice),
+                );
+              }).toList();
+            },
+          ),
+        ],
+      ),
       backgroundColor: Colors.grey[900],
       body: Center(
         child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
-          IconButton(
-            color: Colors.white,
-            onPressed: () {
-              MuteSystemSounds().muteSystemSounds();
-              setState(() {
-                icon = Icon(Icons.notifications_off);
-              });
-            },
-            icon: icon,
-            iconSize: 80.0,
-            tooltip: 'silence wench',
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              IconButton(
+                color: Colors.white,
+                onPressed: () async {
+                  await MuteSystemSounds().muteSystemSounds();
+                  setState(() {
+                    icon = Icon(Icons.notifications_off);
+                  });
+                },
+                icon: icon,
+                iconSize: 50.0,
+                tooltip: 'Puts your phone to silent mode',
+              ),
+              IconButton(
+                color: Colors.white,
+                onPressed: () async {
+                  GetLocationFromGPS newLocation = GetLocationFromGPS();
+                  await newLocation.getLocationFromGPS();
+                  latitude = newLocation.latitude;
+                  longitude = newLocation.longitude;
+                  Timings instance = Timings(
+                      lat: latitude,
+                      long: longitude,
+                      day: day,
+                      month: month,
+                      year: year);
+                  await instance.getTimings();
+                  data = instance.data;
+                  setState(() {
+                    for (String key in prayers.keys) {
+                      prayers[key] = data[day]['timings'][key].substring(0, 5);
+                    }
+                  });
+                  ;
+                },
+                icon: Icon(Icons.location_on),
+                iconSize: 50.0,
+                tooltip: 'gets device location',
+              ),
+            ],
           ),
           Padding(
-            padding: const EdgeInsets.all(18.0),
+            padding: const EdgeInsets.fromLTRB(48.0, 18.0, 48.0, 18.0),
             child: TextField(
               onSubmitted: ((text) async {
-                GetLocation newLocation = GetLocation(location: text);
+                GetLocationFromInput newLocation =
+                    GetLocationFromInput(location: text);
                 await newLocation.getLocationFromUserInput();
                 latitude = newLocation.latitude;
                 longitude = newLocation.longitude;
