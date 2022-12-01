@@ -38,6 +38,8 @@ class ScheduleStorage {
 
 class CreateSchedule {
   late var prayers;
+  static const int prewait = 5;
+  static const int wait = 40;
   late Map<String, String> schedule = {};
   ScheduleStorage scheduleStorage = ScheduleStorage();
 
@@ -45,8 +47,8 @@ class CreateSchedule {
 
   Future<void> createSchedule() async {
     for (String key in prayers.keys) {
-      schedule['${prayers[key]}'] =
-          '${prayers[key].add(const Duration(minutes: 30))}';
+      schedule['${prayers[key].add(const Duration(minutes: 5))}'] =
+          '${prayers[key].add(const Duration(minutes: 40))}';
       scheduleStorage.writeSchedule(schedule);
     }
   }

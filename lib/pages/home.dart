@@ -1,3 +1,4 @@
+import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:prayer_time_silencer/services/get_device_location.dart';
@@ -5,6 +6,8 @@ import 'package:prayer_time_silencer/services/get_prayer_times.dart';
 import 'package:prayer_time_silencer/services/set_device_silent.dart';
 import 'package:prayer_time_silencer/services/silence_scheduler.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:prayer_time_silencer/services/push_local_notifications.dart';
+import 'package:sound_mode/permission_handler.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -97,6 +100,21 @@ class _HomeState extends State<Home> {
                   ;
                 },
                 icon: Icon(Icons.location_on),
+                iconSize: 50.0,
+                tooltip: 'gets device location',
+              ),
+              IconButton(
+                color: Colors.white,
+                onPressed: () async {
+                  bool isGranted =
+                      (await PermissionHandler.permissionsGranted)!;
+                  if (!isGranted) {
+                    // Opens the Do Not Disturb Access settings to grant the access
+                    await PermissionHandler.openDoNotDisturbSetting();
+                  }
+                  scheduleSilence();
+                },
+                icon: Icon(Icons.access_time),
                 iconSize: 50.0,
                 tooltip: 'gets device location',
               ),
@@ -207,5 +225,174 @@ class _HomeState extends State<Home> {
         ]),
       ),
     );
+  }
+
+  @pragma('vm:entry-point')
+  static void createSilence() async {
+    MuteSystemSounds().muteSystemSounds();
+  }
+
+  @pragma('vm:entry-point')
+  static void disableSilence1() async {
+    MuteSystemSounds().enableSystemSounds();
+    LocalNotifications().cancelNotification1();
+  }
+
+  @pragma('vm:entry-point')
+  static void disableSilence2() async {
+    MuteSystemSounds().enableSystemSounds();
+    LocalNotifications().cancelNotification2();
+  }
+
+  @pragma('vm:entry-point')
+  static void disableSilence3() async {
+    MuteSystemSounds().enableSystemSounds();
+    LocalNotifications().cancelNotification3();
+  }
+
+  @pragma('vm:entry-point')
+  static void disableSilence4() async {
+    MuteSystemSounds().enableSystemSounds();
+    LocalNotifications().cancelNotification4();
+  }
+
+  @pragma('vm:entry-point')
+  static void disableSilence5() async {
+    MuteSystemSounds().enableSystemSounds();
+    LocalNotifications().cancelNotification5();
+  }
+
+  void scheduleSilence() async {
+    int id = 0;
+
+    try {
+      if (DateTime.parse(schedule.keys.toList()[0]).isAfter(DateTime.now())) {
+        LocalNotifications notifySilence = LocalNotifications();
+
+        notifySilence.showNotification(
+            id: 9,
+            title: 'Prayer Time Silencer',
+            body: 'Your Phone is being silenced',
+            schedule: DateTime.parse(schedule.keys.toList()[0]));
+
+        AndroidAlarmManager.oneShotAt(
+            DateTime.parse(schedule.keys.toList()[0]),
+            99,
+            rescheduleOnReboot: true,
+            exact: true,
+            createSilence);
+
+        AndroidAlarmManager.oneShotAt(
+            DateTime.parse(schedule.values.toList()[0]),
+            999,
+            rescheduleOnReboot: true,
+            exact: true,
+            disableSilence1);
+
+        print('is this working?${schedule.keys.toList()[0]}');
+      }
+
+      if (DateTime.parse(schedule.keys.toList()[1]).isAfter(DateTime.now())) {
+        LocalNotifications notifySilence = LocalNotifications();
+
+        notifySilence.showNotification(
+            id: 1,
+            title: 'Prayer Time Silencer',
+            body: 'Your Phone is being silenced',
+            schedule: DateTime.parse(schedule.keys.toList()[1]));
+
+        AndroidAlarmManager.oneShotAt(
+            DateTime.parse(schedule.keys.toList()[1]),
+            11,
+            rescheduleOnReboot: true,
+            exact: true,
+            createSilence);
+        print('is this working?${schedule.keys.toList()[1]}');
+
+        AndroidAlarmManager.oneShotAt(
+            DateTime.parse(schedule.values.toList()[1]),
+            111,
+            rescheduleOnReboot: true,
+            exact: true,
+            disableSilence2);
+      }
+
+      if (DateTime.parse(schedule.keys.toList()[2]).isAfter(DateTime.now())) {
+        LocalNotifications notifySilence = LocalNotifications();
+
+        notifySilence.showNotification(
+            id: 2,
+            title: 'Prayer Time Silencer',
+            body: 'Your Phone is being silenced',
+            schedule: DateTime.parse(schedule.keys.toList()[2]));
+
+        AndroidAlarmManager.oneShotAt(
+            DateTime.parse(schedule.keys.toList()[2]),
+            22,
+            rescheduleOnReboot: true,
+            exact: true,
+            createSilence);
+
+        AndroidAlarmManager.oneShotAt(
+            DateTime.parse(schedule.values.toList()[2]),
+            222,
+            rescheduleOnReboot: true,
+            exact: true,
+            disableSilence3);
+        print('is this working?${schedule.keys.toList()[2]}');
+      }
+
+      if (DateTime.parse(schedule.keys.toList()[3]).isAfter(DateTime.now())) {
+        LocalNotifications notifySilence = LocalNotifications();
+
+        notifySilence.showNotification(
+            id: 3,
+            title: 'Prayer Time Silencer',
+            body: 'Your Phone is being silenced',
+            schedule: DateTime.parse(schedule.keys.toList()[3]));
+
+        AndroidAlarmManager.oneShotAt(
+            DateTime.parse(schedule.keys.toList()[3]),
+            33,
+            rescheduleOnReboot: true,
+            exact: true,
+            createSilence);
+
+        AndroidAlarmManager.oneShotAt(
+            DateTime.parse(schedule.values.toList()[3]),
+            333,
+            rescheduleOnReboot: true,
+            exact: true,
+            disableSilence4);
+        print('is this working?${schedule.keys.toList()[3]}');
+      }
+
+      if (DateTime.parse(schedule.keys.toList()[4]).isAfter(DateTime.now())) {
+        LocalNotifications notifySilence = LocalNotifications();
+
+        notifySilence.showNotification(
+            id: 4,
+            title: 'Prayer Time Silencer',
+            body: 'Your Phone is being silenced',
+            schedule: DateTime.parse(schedule.keys.toList()[4]));
+
+        AndroidAlarmManager.oneShotAt(
+            DateTime.parse(schedule.keys.toList()[4]),
+            44,
+            rescheduleOnReboot: true,
+            exact: true,
+            createSilence);
+
+        AndroidAlarmManager.oneShotAt(
+            DateTime.parse(schedule.values.toList()[4]),
+            444,
+            rescheduleOnReboot: true,
+            exact: true,
+            disableSilence5);
+        print('is this working?${schedule.keys.toList()[4]}');
+      } else {}
+    } catch (e) {
+      print(e);
+    }
   }
 }

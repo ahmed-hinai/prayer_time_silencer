@@ -22,15 +22,12 @@ class MuteSystemSounds {
   }
 
   Future<void> enableSystemSounds() async {
-    isGranted = (await PermissionHandler.permissionsGranted)!;
-    if (isGranted) {
-      try {
-        print('someone called me!!!');
-        await SoundMode.setSoundMode(RingerModeStatus.normal);
-      } catch (e) {
-        print('Please enable permissions required');
-        print(e);
-      }
+    try {
+      print('someone called me!!!');
+      await SoundMode.setSoundMode(RingerModeStatus.normal);
+    } catch (e) {
+      print('Please enable permissions required');
+      print(e);
     }
   }
 }
