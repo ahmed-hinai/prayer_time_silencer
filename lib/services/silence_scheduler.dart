@@ -1,18 +1,53 @@
-import 'package:workmanager/workmanager.dart';
 import 'package:prayer_time_silencer/services/set_device_silent.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+
+class ScheduleStorage {
+  Future<String> get _localPath async {
+    final directory = await getApplicationDocumentsDirectory();
+
+    return directory.path;
+  }
+
+  Future<File> get _localFile async {
+    final path = await _localPath;
+    return File('$path/schedule.json');
+  }
+
+  Future<dynamic> readSchedule() async {
+    try {
+      final file = await _localFile;
+      final contents = await file.readAsString();
+      return jsonDecode(contents);
+    } catch (e) {
+      // If encountering an error, return 0
+      print(' is this from here perhapse ?? $e');
+      return '';
+    }
+  }
+
+  Future<File> writeSchedule(response) async {
+    final file = await _localFile;
+
+    // Write the file
+
+    return file.writeAsString(json.encode(response));
+  }
+}
 
 class CreateSchedule {
-  late var data;
-  final int day = DateTime.now().day - 1;
-  late Map<String, String> silenceScheduel;
+  late var prayers;
+  late Map<String, String> schedule = {};
+  ScheduleStorage scheduleStorage = ScheduleStorage();
 
-  CreateSchedule({this.data});
+  CreateSchedule({required this.prayers});
 
-  void createSchedule() {
-    data[day]['timings']['Fajr'].substring(0, 5);
-    data[day]['timings']['Dhuhr'].substring(0, 5);
-    data[day]['timings']['Asr'].substring(0, 5);
-    data[day]['timings']['Maghrib'].substring(0, 5);
-    data[day]['timings']['Isha'].substring(0, 5);
+  Future<void> createSchedule() async {
+    for (String key in prayers.keys) {
+      schedule['${prayers[key]}'] =
+          '${prayers[key].add(const Duration(minutes: 30))}';
+      scheduleStorage.writeSchedule(schedule);
+    }
   }
 }
