@@ -13,7 +13,7 @@ class Loading extends StatefulWidget {
 
 class _LoadingState extends State<Loading> {
   void setupTimings() async {
-    await Future.delayed(Duration(seconds: 3));
+    await Future.delayed(Duration(seconds: 2));
     Navigator.pushReplacementNamed(context, '/home');
   }
 
@@ -27,7 +27,7 @@ class _LoadingState extends State<Loading> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.grey[800],
+        backgroundColor: Colors.blue[900],
         body: Center(
             child: SpinKitCubeGrid(
           color: Colors.white,

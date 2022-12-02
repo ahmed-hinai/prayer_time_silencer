@@ -16,7 +16,7 @@ class TimingsStorage {
   }
 }
 
-class Timings {
+class TimingsLocal {
   late int day;
   late int month;
   late int year;
@@ -24,7 +24,7 @@ class Timings {
   Map<String, DateTime> prayers = {};
   final TimingsStorage timingsstorage = TimingsStorage();
 
-  Timings({required this.day, required this.month, required this.year});
+  TimingsLocal({required this.day, required this.month, required this.year});
 
   Future<void> getTimings() async {
     try {

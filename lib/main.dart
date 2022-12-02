@@ -6,39 +6,30 @@ import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:prayer_time_silencer/pages/home.dart';
 import 'package:prayer_time_silencer/pages/loading.dart';
+import 'package:prayer_time_silencer/pages/settings.dart';
+import 'package:prayer_time_silencer/pages/aboutus.dart';
 import 'package:prayer_time_silencer/services/set_device_silent.dart';
 import 'package:prayer_time_silencer/services/silence_scheduler.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:prayer_time_silencer/services/get_prayer_times_local.dart';
 import 'package:prayer_time_silencer/services/push_local_notifications.dart';
+import 'package:background_fetch/background_fetch.dart';
 
-// Be sure to annotate your callback function to avoid issues in release mode on Flutter >= 3.3.0
-// @pragma('vm:entry-point')
-// void runSilenceScheduler() async {
-//   final DateTime now = DateTime.now();
-//   final int isolateId = Isolate.current.hashCode;
-//   late final LocalNotifications service;
-//   service = LocalNotifications();
-//   await service.initialize();
-//   await service.showNotification(
-//       id: 0,
-//       title: 'Prayer Time Silencer',
-//       body: 'Your Phone is being silenced');
-//   await MuteSystemSounds().muteSystemSounds();
-//   print("[$now] Hello, world! isolate=${isolateId} function=");
-// }
-
-// @pragma('vm:entry-point')
-// void runDisableSilenceScheduler() async {
-//   final DateTime now = DateTime.now();
-//   final int isolateId = Isolate.current.hashCode;
-//   late final LocalNotifications service;
-//   service = LocalNotifications();
-//   await service.initialize();
-//   await service.cancelNotification();
-//   await MuteSystemSounds().enableSystemSounds();
-//   print("[$now] Hello, world! isolate=${isolateId} function=");
-// }
+@pragma('vm:entry-point')
+void backgroundFetchHeadlessTask(HeadlessTask task) async {
+  String taskId = task.taskId;
+  bool isTimeout = task.timeout;
+  if (isTimeout) {
+    // This task has exceeded its allowed running-time.
+    // You must stop what you're doing and immediately .finish(taskId)
+    print("[BackgroundFetch] Headless task timed-out: $taskId");
+    BackgroundFetch.finish(taskId);
+    return;
+  }
+  print('[BackgroundFetch] Headless event received.');
+  // Do your work here...
+  BackgroundFetch.finish(taskId);
+}
 
 void main() async {
   await initializeDateFormatting();
@@ -50,6 +41,9 @@ void main() async {
     routes: {
       '/': (context) => Loading(),
       '/home': (context) => Home(),
+      '/settings': (context) => Settings(),
+      '/aboutus': (context) => Aboutus()
     },
   ));
+  BackgroundFetch.registerHeadlessTask(backgroundFetchHeadlessTask);
 }

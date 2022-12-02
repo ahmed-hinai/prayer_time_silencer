@@ -54,6 +54,7 @@ dependencies:
   flutter_staggered_animations: ^1.1.1
   flutter_mute: ^0.0.4
   flutter_native_timezone: ^2.0.0
+  background_fetch: ^1.1.2
 
 dev_dependencies:
   flutter_test:

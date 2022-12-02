@@ -85,7 +85,7 @@ class Timings {
       } else {
         try {
           Response response = await get(Uri.parse(
-              'http://api.aladhan.com/v1/calendar?latitude=$lat&longitude=$long&month=$month&year=$year'));
+              'http://api.aladhan.com/v1/calendar?latitude=$lat&longitude=$long&year=$year'));
           data = jsonDecode(response.body)["data"];
           prayers['Fajr'] = DateTime.parse(
               '$year-${month.toString().length < 2 ? month.toString().padLeft(2, '0'.replaceAll('"', '')) : month}-${day.toString().length < 2 ? day.toString().padLeft(2, '0'.replaceAll('"', '')) : day} ${data[day - 1]['timings']['Fajr'].substring(0, 5)}');
@@ -107,7 +107,7 @@ class Timings {
     } catch (e) {
       print('this is from over head wow $e');
       Response response = await get(Uri.parse(
-          'http://api.aladhan.com/v1/calendar?latitude=$lat&longitude=$long&month=$month&year=$year'));
+          'http://api.aladhan.com/v1/calendar?latitude=$lat&longitude=$long&year=$year'));
       data = jsonDecode(response.body)["data"];
       prayers['Fajr'] = DateTime.parse(
           '$year-${month.toString().length < 2 ? month.toString().padLeft(2, '0'.replaceAll('"', '')) : month}-${day.toString().length < 2 ? day.toString().padLeft(2, '0'.replaceAll('"', '')) : day} ${data[day - 1]['timings']['Fajr'].substring(0, 5)}');
