@@ -41,8 +41,8 @@ void main() async {
     routes: {
       '/': (context) => Loading(),
       '/home': (context) => Home(),
-      '/settings': (context) => Settings(),
-      '/aboutus': (context) => Aboutus()
+      '/Settings': (context) => Settings(),
+      '/About us': (context) => Aboutus()
     },
   ));
   BackgroundFetch.registerHeadlessTask(backgroundFetchHeadlessTask);
