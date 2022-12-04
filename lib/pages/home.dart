@@ -8,6 +8,7 @@ import 'package:prayer_time_silencer/services/get_prayer_times.dart';
 import 'package:prayer_time_silencer/services/get_prayer_times_local.dart';
 import 'package:prayer_time_silencer/services/set_device_silent.dart';
 import 'package:prayer_time_silencer/services/silence_scheduler.dart';
+import 'package:prayer_time_silencer/services/corrections_store.dart';
 import 'package:prayer_time_silencer/services/push_local_notifications.dart';
 import 'package:sound_mode/permission_handler.dart';
 import 'package:path/path.dart';
@@ -32,6 +33,7 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
     initPlatformState();
+    getLocaltimings();
   }
 
   static Future<void> pop({bool? animated}) async {
@@ -44,7 +46,7 @@ class _HomeState extends State<Home> {
     // Configure BackgroundFetch.
     int status = await BackgroundFetch.configure(
         BackgroundFetchConfig(
-            minimumFetchInterval: 30,
+            minimumFetchInterval: 15,
             stopOnTerminate: false,
             enableHeadless: true,
             requiresBatteryNotLow: false,
@@ -156,7 +158,6 @@ class _HomeState extends State<Home> {
   bool schedulevisible = false;
   bool confirmvisible = false;
   bool timingsvisible = true;
-
   Map<String, dynamic> oldPrayers = {
     'Fajr': DateFormat.Hm().format(DateTime.now()),
     'Dhuhr': DateFormat.Hm().format(DateTime.now()),
@@ -165,9 +166,28 @@ class _HomeState extends State<Home> {
     'Isha': DateFormat.Hm().format(DateTime.now())
   };
   late var data;
-  Map<String, DateTime> prayers = {};
+  static Map<String, DateTime> prayers = {};
   Map<String, String> scheduleStart = {};
   Map<String, String> scheduleEnd = {};
+
+  void getLocaltimings() async {
+    try {
+      TimingsLocal localinstance =
+          TimingsLocal(day: day, month: month, year: year);
+      await localinstance.getTimings();
+      prayers = localinstance.prayers;
+      CreateSchedule getSchedule = CreateSchedule(
+          prayers: prayers,
+          prewait: _currentValueStart,
+          wait: _currentValueEnd);
+      await getSchedule.createSchedule();
+      scheduleStart = getSchedule.scheduleStart;
+      scheduleEnd = getSchedule.scheduleEnd;
+    } catch (e) {
+      print(e);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -197,12 +217,16 @@ class _HomeState extends State<Home> {
                     await newLocation.getLocationFromUserInput();
                     latitude = newLocation.latitude;
                     longitude = newLocation.longitude;
+                    CorrectionsStorage storedCorrections = CorrectionsStorage();
+                    var newCorrections =
+                        await storedCorrections.readCorrections();
                     Timings instance = Timings(
                         lat: latitude,
                         long: longitude,
                         day: day,
                         month: month,
-                        year: year);
+                        year: year,
+                        corrections: newCorrections);
                     await instance.getTimings();
                     prayers = instance.prayers;
                     setState(() {
@@ -261,7 +285,7 @@ class _HomeState extends State<Home> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(18.0, 8.0, 18.0, 8.0),
+                  padding: const EdgeInsets.fromLTRB(18.0, 1.0, 18.0, 1.0),
                   child: Visibility(
                     visible: timingsvisible,
                     child: ListView.builder(
@@ -392,13 +416,18 @@ class _HomeState extends State<Home> {
                             await newLocation.getLocationFromGPS();
                             latitude = newLocation.latitude;
                             longitude = newLocation.longitude;
+                            CorrectionsStorage storedCorrections =
+                                CorrectionsStorage();
+                            var newCorrections =
+                                await storedCorrections.readCorrections();
                             print('is this correct? $day');
                             Timings instance = Timings(
                                 lat: latitude,
                                 long: longitude,
                                 day: day,
                                 month: month,
-                                year: year);
+                                year: year,
+                                corrections: newCorrections);
                             await instance.getTimings();
                             prayers = instance.prayers;
                             CreateSchedule getSchedule = CreateSchedule(
@@ -432,58 +461,64 @@ class _HomeState extends State<Home> {
                   maintainState: true,
                   visible: schedulevisible,
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(18.0, 8.0, 18.0, 1.0),
-                    child: Row(children: [
-                      Expanded(
-                        child: Card(
-                          color: Colors.grey[600],
-                          child: NumberPicker(
-                            textStyle: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold),
-                            value: _currentValueStart,
-                            minValue: 0,
-                            maxValue: 20,
-                            onChanged: (value) => setState(() {
-                              int oldValueStart = _currentValueStart;
-                              _currentValueStart = value;
-                              for (String key in scheduleStart.keys) {
-                                scheduleStart[key] = DateTime.parse(
-                                        scheduleStart[key].toString())
-                                    .subtract(Duration(minutes: oldValueStart))
-                                    .add(Duration(minutes: _currentValueStart))
-                                    .toString();
-                              }
-                            }),
+                    padding: const EdgeInsets.fromLTRB(18.0, 1.0, 18.0, 1.0),
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Flexible(
+                            child: Card(
+                              color: Colors.grey[600],
+                              child: NumberPicker(
+                                itemWidth: 168.0,
+                                textStyle: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold),
+                                value: _currentValueStart,
+                                minValue: 0,
+                                maxValue: 20,
+                                onChanged: (value) => setState(() {
+                                  int oldValueStart = _currentValueStart;
+                                  _currentValueStart = value;
+                                  for (String key in scheduleStart.keys) {
+                                    scheduleStart[key] = DateTime.parse(
+                                            scheduleStart[key].toString())
+                                        .subtract(
+                                            Duration(minutes: oldValueStart))
+                                        .add(Duration(
+                                            minutes: _currentValueStart))
+                                        .toString();
+                                  }
+                                }),
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Card(
-                          color: Colors.grey[600],
-                          child: NumberPicker(
-                              textStyle: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold),
-                              value: _currentValueEnd,
-                              minValue: 20,
-                              maxValue: 60,
-                              onChanged: (value) => setState(() {
-                                    int oldValueEnd = _currentValueEnd;
-                                    _currentValueEnd = value;
-                                    for (String key in scheduleEnd.keys) {
-                                      scheduleEnd[key] = DateTime.parse(
-                                              scheduleEnd[key].toString())
-                                          .subtract(
-                                              Duration(minutes: oldValueEnd))
-                                          .add(Duration(
-                                              minutes: _currentValueEnd))
-                                          .toString();
-                                    }
-                                  })),
-                        ),
-                      ),
-                    ]),
+                          Flexible(
+                            child: Card(
+                              color: Colors.grey[600],
+                              child: NumberPicker(
+                                  itemWidth: 168.0,
+                                  textStyle: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold),
+                                  value: _currentValueEnd,
+                                  minValue: 20,
+                                  maxValue: 60,
+                                  onChanged: (value) => setState(() {
+                                        int oldValueEnd = _currentValueEnd;
+                                        _currentValueEnd = value;
+                                        for (String key in scheduleEnd.keys) {
+                                          scheduleEnd[key] = DateTime.parse(
+                                                  scheduleEnd[key].toString())
+                                              .subtract(Duration(
+                                                  minutes: oldValueEnd))
+                                              .add(Duration(
+                                                  minutes: _currentValueEnd))
+                                              .toString();
+                                        }
+                                      })),
+                            ),
+                          ),
+                        ]),
                   ),
                 ),
                 Visibility(
@@ -532,7 +567,7 @@ class _HomeState extends State<Home> {
                   maintainState: true,
                   visible: schedulevisible,
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(30.0, 10.0, 30.0, 50.0),
+                    padding: const EdgeInsets.fromLTRB(30.0, 8.0, 30.0, 8.0),
                     child: Card(
                       color: Colors.grey[800],
                       child: Row(
@@ -604,6 +639,39 @@ class _HomeState extends State<Home> {
                     ),
                   ),
                 ),
+                SafeArea(
+                  child: Visibility(
+                      visible: schedulevisible,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.grey[700]),
+                        child: Text('Corrections'),
+                        onPressed: (() async {
+                          dynamic result = await Navigator.pushNamed(
+                              context, '/corrections',
+                              arguments: {
+                                'prayers': prayers,
+                                'latitude': latitude,
+                                'longitude': longitude,
+                                'day': day,
+                                'month': month,
+                                'year': year
+                              });
+                          setState(() {
+                            oldPrayers['Fajr'] = DateFormat.Hm()
+                                .format(result['prayers']['Fajr']);
+                            oldPrayers['Dhuhr'] = DateFormat.Hm()
+                                .format(result['prayers']['Dhuhr']);
+                            oldPrayers['Asr'] = DateFormat.Hm()
+                                .format(result['prayers']['Asr']);
+                            oldPrayers['Maghrib'] = DateFormat.Hm()
+                                .format(result['prayers']['Maghrib']);
+                            oldPrayers['Isha'] = DateFormat.Hm()
+                                .format(result['prayers']['Isha']);
+                          });
+                        }),
+                      )),
+                ),
                 Visibility(
                     visible: confirmvisible,
                     child: Padding(
@@ -643,13 +711,16 @@ class _HomeState extends State<Home> {
                             await newLocation.getLocationFromGPS();
                             latitude = newLocation.latitude;
                             longitude = newLocation.longitude;
+                            var newCorrections =
+                                await CorrectionsStorage().readCorrections();
                             print('is this correct? $day');
                             Timings instance = Timings(
                                 lat: latitude,
                                 long: longitude,
                                 day: day,
                                 month: month,
-                                year: year);
+                                year: year,
+                                corrections: newCorrections);
                             await instance.getTimings();
                             prayers = instance.prayers;
                             CreateSchedule getSchedule = CreateSchedule(
@@ -729,20 +800,20 @@ class _HomeState extends State<Home> {
           .isAfter(DateTime.now())) {
         LocalNotifications notifySilence = LocalNotifications();
 
-        notifySilence.showNotification(
+        await notifySilence.showNotification(
             id: 9,
             title: 'Prayer Time Silencer',
             body: 'Your Phone is being silenced',
             schedule: DateTime.parse(scheduleStart.values.toList()[0]));
 
-        AndroidAlarmManager.oneShotAt(
+        await AndroidAlarmManager.oneShotAt(
             DateTime.parse(scheduleStart.values.toList()[0]),
             99,
             rescheduleOnReboot: true,
             exact: true,
             createSilence);
 
-        AndroidAlarmManager.oneShotAt(
+        await AndroidAlarmManager.oneShotAt(
             DateTime.parse(scheduleEnd.values.toList()[0]),
             999,
             rescheduleOnReboot: true,
@@ -756,13 +827,13 @@ class _HomeState extends State<Home> {
           .isAfter(DateTime.now())) {
         LocalNotifications notifySilence = LocalNotifications();
 
-        notifySilence.showNotification(
+        await notifySilence.showNotification(
             id: 1,
             title: 'Prayer Time Silencer',
             body: 'Your Phone is being silenced',
             schedule: DateTime.parse(scheduleStart.values.toList()[1]));
 
-        AndroidAlarmManager.oneShotAt(
+        await AndroidAlarmManager.oneShotAt(
             DateTime.parse(scheduleStart.values.toList()[1]),
             11,
             rescheduleOnReboot: true,
@@ -770,7 +841,7 @@ class _HomeState extends State<Home> {
             createSilence);
         print('is this working?${scheduleStart.values.toList()[1]}');
 
-        AndroidAlarmManager.oneShotAt(
+        await AndroidAlarmManager.oneShotAt(
             DateTime.parse(scheduleEnd.values.toList()[1]),
             111,
             rescheduleOnReboot: true,
@@ -782,20 +853,20 @@ class _HomeState extends State<Home> {
           .isAfter(DateTime.now())) {
         LocalNotifications notifySilence = LocalNotifications();
 
-        notifySilence.showNotification(
+        await notifySilence.showNotification(
             id: 2,
             title: 'Prayer Time Silencer',
             body: 'Your Phone is being silenced',
             schedule: DateTime.parse(scheduleStart.values.toList()[2]));
 
-        AndroidAlarmManager.oneShotAt(
+        await AndroidAlarmManager.oneShotAt(
             DateTime.parse(scheduleStart.values.toList()[2]),
             22,
             rescheduleOnReboot: true,
             exact: true,
             createSilence);
 
-        AndroidAlarmManager.oneShotAt(
+        await AndroidAlarmManager.oneShotAt(
             DateTime.parse(scheduleEnd.values.toList()[2]),
             222,
             rescheduleOnReboot: true,
@@ -808,20 +879,20 @@ class _HomeState extends State<Home> {
           .isAfter(DateTime.now())) {
         LocalNotifications notifySilence = LocalNotifications();
 
-        notifySilence.showNotification(
+        await notifySilence.showNotification(
             id: 3,
             title: 'Prayer Time Silencer',
             body: 'Your Phone is being silenced',
             schedule: DateTime.parse(scheduleStart.values.toList()[3]));
 
-        AndroidAlarmManager.oneShotAt(
+        await AndroidAlarmManager.oneShotAt(
             DateTime.parse(scheduleStart.values.toList()[3]),
             33,
             rescheduleOnReboot: true,
             exact: true,
             createSilence);
 
-        AndroidAlarmManager.oneShotAt(
+        await AndroidAlarmManager.oneShotAt(
             DateTime.parse(scheduleEnd.values.toList()[3]),
             333,
             rescheduleOnReboot: true,
@@ -834,20 +905,20 @@ class _HomeState extends State<Home> {
           .isAfter(DateTime.now())) {
         LocalNotifications notifySilence = LocalNotifications();
 
-        notifySilence.showNotification(
+        await notifySilence.showNotification(
             id: 4,
             title: 'Prayer Time Silencer',
             body: 'Your Phone is being silenced',
             schedule: DateTime.parse(scheduleStart.values.toList()[4]));
 
-        AndroidAlarmManager.oneShotAt(
+        await AndroidAlarmManager.oneShotAt(
             DateTime.parse(scheduleStart.values.toList()[4]),
             44,
             rescheduleOnReboot: true,
             exact: true,
             createSilence);
 
-        AndroidAlarmManager.oneShotAt(
+        await AndroidAlarmManager.oneShotAt(
             DateTime.parse(scheduleEnd.values.toList()[4]),
             444,
             rescheduleOnReboot: true,
@@ -871,20 +942,20 @@ class _HomeState extends State<Home> {
           .isAfter(DateTime.now())) {
         LocalNotifications notifySilence = LocalNotifications();
 
-        notifySilence.showNotification(
+        await notifySilence.showNotification(
             id: 9,
             title: 'Prayer Time Silencer',
             body: 'Your Phone is being silenced',
             schedule: DateTime.parse(scheduleStart.values.toList()[0]));
 
-        AndroidAlarmManager.oneShotAt(
+        await AndroidAlarmManager.oneShotAt(
             DateTime.parse(scheduleStart.values.toList()[0]),
             99,
             rescheduleOnReboot: true,
             exact: true,
             createSilence);
 
-        AndroidAlarmManager.oneShotAt(
+        await AndroidAlarmManager.oneShotAt(
             DateTime.parse(scheduleEnd.values.toList()[0]),
             999,
             rescheduleOnReboot: true,
@@ -898,13 +969,13 @@ class _HomeState extends State<Home> {
           .isAfter(DateTime.now())) {
         LocalNotifications notifySilence = LocalNotifications();
 
-        notifySilence.showNotification(
+        await notifySilence.showNotification(
             id: 1,
             title: 'Prayer Time Silencer',
             body: 'Your Phone is being silenced',
             schedule: DateTime.parse(scheduleStart.values.toList()[1]));
 
-        AndroidAlarmManager.oneShotAt(
+        await AndroidAlarmManager.oneShotAt(
             DateTime.parse(scheduleStart.values.toList()[1]),
             11,
             rescheduleOnReboot: true,
@@ -912,7 +983,7 @@ class _HomeState extends State<Home> {
             createSilence);
         print('is this working?${scheduleStart.values.toList()[1]}');
 
-        AndroidAlarmManager.oneShotAt(
+        await AndroidAlarmManager.oneShotAt(
             DateTime.parse(scheduleEnd.values.toList()[1]),
             111,
             rescheduleOnReboot: true,
@@ -924,20 +995,20 @@ class _HomeState extends State<Home> {
           .isAfter(DateTime.now())) {
         LocalNotifications notifySilence = LocalNotifications();
 
-        notifySilence.showNotification(
+        await notifySilence.showNotification(
             id: 2,
             title: 'Prayer Time Silencer',
             body: 'Your Phone is being silenced',
             schedule: DateTime.parse(scheduleStart.values.toList()[2]));
 
-        AndroidAlarmManager.oneShotAt(
+        await AndroidAlarmManager.oneShotAt(
             DateTime.parse(scheduleStart.values.toList()[2]),
             22,
             rescheduleOnReboot: true,
             exact: true,
             createSilence);
 
-        AndroidAlarmManager.oneShotAt(
+        await AndroidAlarmManager.oneShotAt(
             DateTime.parse(scheduleEnd.values.toList()[2]),
             222,
             rescheduleOnReboot: true,
@@ -950,20 +1021,20 @@ class _HomeState extends State<Home> {
           .isAfter(DateTime.now())) {
         LocalNotifications notifySilence = LocalNotifications();
 
-        notifySilence.showNotification(
+        await notifySilence.showNotification(
             id: 3,
             title: 'Prayer Time Silencer',
             body: 'Your Phone is being silenced',
             schedule: DateTime.parse(scheduleStart.values.toList()[3]));
 
-        AndroidAlarmManager.oneShotAt(
+        await AndroidAlarmManager.oneShotAt(
             DateTime.parse(scheduleStart.values.toList()[3]),
             33,
             rescheduleOnReboot: true,
             exact: true,
             createSilence);
 
-        AndroidAlarmManager.oneShotAt(
+        await AndroidAlarmManager.oneShotAt(
             DateTime.parse(scheduleEnd.values.toList()[3]),
             333,
             rescheduleOnReboot: true,
@@ -976,20 +1047,20 @@ class _HomeState extends State<Home> {
           .isAfter(DateTime.now())) {
         LocalNotifications notifySilence = LocalNotifications();
 
-        notifySilence.showNotification(
+        await notifySilence.showNotification(
             id: 4,
             title: 'Prayer Time Silencer',
             body: 'Your Phone is being silenced',
             schedule: DateTime.parse(scheduleStart.values.toList()[4]));
 
-        AndroidAlarmManager.oneShotAt(
+        await AndroidAlarmManager.oneShotAt(
             DateTime.parse(scheduleStart.values.toList()[4]),
             44,
             rescheduleOnReboot: true,
             exact: true,
             createSilence);
 
-        AndroidAlarmManager.oneShotAt(
+        await AndroidAlarmManager.oneShotAt(
             DateTime.parse(scheduleEnd.values.toList()[4]),
             444,
             rescheduleOnReboot: true,

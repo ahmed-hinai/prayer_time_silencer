@@ -8,6 +8,7 @@ import 'package:prayer_time_silencer/pages/home.dart';
 import 'package:prayer_time_silencer/pages/loading.dart';
 import 'package:prayer_time_silencer/pages/settings.dart';
 import 'package:prayer_time_silencer/pages/aboutus.dart';
+import 'package:prayer_time_silencer/pages/corrections.dart';
 import 'package:prayer_time_silencer/services/set_device_silent.dart';
 import 'package:prayer_time_silencer/services/silence_scheduler.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
@@ -36,14 +37,48 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AndroidAlarmManager.initialize();
   await LocalNotifications().initialize();
-  runApp(MaterialApp(
-    initialRoute: '/',
-    routes: {
-      '/': (context) => Loading(),
-      '/home': (context) => Home(),
-      '/Settings': (context) => Settings(),
-      '/About us': (context) => Aboutus()
-    },
+  runApp(RestartWidget(
+    child: MaterialApp(
+      initialRoute: '/',
+      routes: {
+        '/': (context) => Loading(),
+        '/home': (context) => Home(),
+        '/Settings': (context) => Settings(),
+        '/About us': (context) => Aboutus(),
+        '/corrections': (context) => Corrections()
+      },
+    ),
   ));
   BackgroundFetch.registerHeadlessTask(backgroundFetchHeadlessTask);
+}
+
+class RestartWidget extends StatefulWidget {
+  RestartWidget({required this.child});
+
+  final Widget child;
+
+  static void restartApp(BuildContext context) {
+    context.findAncestorStateOfType<_RestartWidgetState>()?.restartApp();
+  }
+
+  @override
+  _RestartWidgetState createState() => _RestartWidgetState();
+}
+
+class _RestartWidgetState extends State<RestartWidget> {
+  Key key = UniqueKey();
+
+  void restartApp() {
+    setState(() {
+      key = UniqueKey();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return KeyedSubtree(
+      key: key,
+      child: widget.child,
+    );
+  }
 }
