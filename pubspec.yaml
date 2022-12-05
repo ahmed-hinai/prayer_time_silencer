@@ -58,6 +58,8 @@ dependencies:
 
   flutter_localizations:
     sdk: flutter
+  open_settings: ^2.0.2
+  shared_preferences: ^2.0.15
 
 dev_dependencies:
   flutter_test:

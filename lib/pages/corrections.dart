@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:numberpicker/numberpicker.dart';
 import 'package:intl/intl.dart';
-import 'package:prayer_time_silencer/pages/home.dart';
 import 'package:prayer_time_silencer/services/get_prayer_times.dart';
 import 'package:prayer_time_silencer/services/corrections_store.dart';
-import 'package:prayer_time_silencer/main.dart';
-import 'package:path/path.dart' as Path;
-import 'package:prayer_time_silencer/services/silence_scheduler.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class Corrections extends StatefulWidget {

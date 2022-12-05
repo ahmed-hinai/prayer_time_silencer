@@ -1,6 +1,9 @@
 {
 
-    "language": "العربية",
+    "language": "اللغة",
+    "english": "الإنجليزية",
+    "arabic":"العربية",
+    "urdu": "الأردية",
 
     "fajr": "الفجر",
 
@@ -15,11 +18,19 @@
     "enterToRetrievePrayerTimes" : "أدخل لاسترداد أوقات الصلاة لعنوان معين.",
     "settings":"إعدادات",
     "aboutUs":"معلومات عنا",
-    "confirmSchedule": "جدول أوقات الصمت",
-    "endSchedule": "نهاية وقت الصمت",
+    "confirmSchedule": "جدول أوقات كتم الصوت",
+    "endSchedule": "نهاية وقت كتم الصوت",
     "confirmationMessage": "تمت جدولة أوقات الصمت.",
-    "startSchedule": "بداية وقت الصمت",
+    "startSchedule": "بداية وقت كتم الصوت",
     "corrections": "التصحيحات",
-    "correctionsMessage": "من المحتمل أن تكون مواقيت الصلاة غير دقيقة إلى حد ما ، لذلك يُنصح بالرجوع إلى أوقات الصلاة الرسمية وإضافة تصحيح."
+    "correctionsMessage": "من المحتمل أن تكون مواقيت الصلاة غير دقيقة إلى حد ما ، لذلك يُنصح بالرجوع إلى أوقات الصلاة الرسمية وإضافة تصحيح.",
+    "doNotDistrubTitle": "مطلوب إذن 'عدم الإزعاج'.",
+    "doNotDistrubBody": "يتطلب التطبيق إذن 'عدم الإزعاج' حتى يعمل.",
+    "notificationTitle":"كاتم صوت الهاتف وقت الصلاة",
+    "notificationBody": "سيتم كتم صوت جهازك بعد 5 دقائق",
+    "ok": "حسنا",
+    "locationTooltip": "طلب الموقع الحالي.",
+    "editTooltip": "تحرير الجدولة الحالية.",
+    "beginHere": "ابدأ هنا"
 
 }

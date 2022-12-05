@@ -2,6 +2,7 @@ import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:path/path.dart';
 import 'package:prayer_time_silencer/services/get_device_location.dart';
 import 'package:prayer_time_silencer/services/get_prayer_times.dart';
 import 'package:prayer_time_silencer/services/get_prayer_times_local.dart';
@@ -14,14 +15,17 @@ import 'package:sound_mode/permission_handler.dart';
 import 'package:background_fetch/background_fetch.dart';
 import 'package:simple_animations/simple_animations.dart';
 import 'package:numberpicker/numberpicker.dart';
-import 'package:prayer_time_silencer/main.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:open_settings/open_settings.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
 
   @override
   State<Home> createState() => _HomeState();
+
+  static of(BuildContext context) {}
 }
 
 class _HomeState extends State<Home> {
@@ -89,7 +93,7 @@ class _HomeState extends State<Home> {
     // Configure BackgroundFetch.
     int status = await BackgroundFetch.configure(
         BackgroundFetchConfig(
-            minimumFetchInterval: 15,
+            minimumFetchInterval: 60,
             stopOnTerminate: false,
             enableHeadless: true,
             requiresBatteryNotLow: false,
@@ -163,6 +167,8 @@ class _HomeState extends State<Home> {
   bool confirmvisible = false;
   bool timingsvisible = true;
   List<bool> selections = [true, false, false, false, false];
+  static String notificationTitle = "Prayer Time Silencer";
+  static String notificationBody = "Your device will be silenced in 5 minutes.";
   Map<String, dynamic> oldPrayers = {
     'Fajr': DateFormat.Hm().format(DateTime.now()),
     'Dhuhr': DateFormat.Hm().format(DateTime.now()),
@@ -250,6 +256,10 @@ class _HomeState extends State<Home> {
                   padding: const EdgeInsets.all(18.0),
                   child: TextField(
                     onSubmitted: ((text) async {
+                      notificationTitle =
+                          AppLocalizations.of(context)!.doNotDistrubTitle;
+                      notificationBody =
+                          AppLocalizations.of(context)!.doNotDistrubBody;
                       Navigator.pop(context);
                       GetLocationFromInput newLocation =
                           GetLocationFromInput(location: text);
@@ -359,7 +369,7 @@ class _HomeState extends State<Home> {
                                         builder: (context, constraints) {
                                       return ToggleButtons(
                                         borderWidth: 3.0,
-                                        selectedBorderColor: Colors.blue[600],
+                                        selectedBorderColor: Colors.grey[200],
                                         borderRadius: BorderRadius.circular(70),
                                         constraints: BoxConstraints.expand(
                                             width: constraints.maxWidth / 1.03),
@@ -388,9 +398,9 @@ class _HomeState extends State<Home> {
                                                           BorderRadius.circular(
                                                               70.0)),
                                                   child: Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
+                                                    padding: const EdgeInsets
+                                                            .fromLTRB(
+                                                        8.0, 1.0, 8.0, 1.0),
                                                     child: Center(
                                                       child: Text(
                                                         index == 0
@@ -435,7 +445,11 @@ class _HomeState extends State<Home> {
                                                           child: Padding(
                                                             padding:
                                                                 const EdgeInsets
-                                                                    .all(8.0),
+                                                                        .fromLTRB(
+                                                                    8.0,
+                                                                    1.0,
+                                                                    8.0,
+                                                                    1.0),
                                                             child: Text(
                                                               '${DateFormat.Hm().format(DateTime.parse(scheduleStart.values.toList()[index]))}',
                                                               style: TextStyle(
@@ -458,7 +472,11 @@ class _HomeState extends State<Home> {
                                                           child: Padding(
                                                             padding:
                                                                 const EdgeInsets
-                                                                    .all(8.0),
+                                                                        .fromLTRB(
+                                                                    8.0,
+                                                                    1.0,
+                                                                    8.0,
+                                                                    1.0),
                                                             child: Text(
                                                                 '${DateFormat.Hm().format(DateTime.parse(scheduleEnd.values.toList()[index]))}',
                                                                 style: TextStyle(
@@ -518,7 +536,7 @@ class _HomeState extends State<Home> {
                     child: Column(
                       children: [
                         Text(
-                          'Begin here',
+                          AppLocalizations.of(context)!.beginHere,
                           style: TextStyle(color: Colors.white, fontSize: 18.0),
                         ),
                         Icon(
@@ -529,6 +547,10 @@ class _HomeState extends State<Home> {
                         IconButton(
                           color: Colors.blue[900],
                           onPressed: () async {
+                            notificationTitle =
+                                AppLocalizations.of(context)!.doNotDistrubTitle;
+                            notificationBody =
+                                AppLocalizations.of(context)!.doNotDistrubBody;
                             GetLocationFromGPS newLocation =
                                 GetLocationFromGPS();
                             await newLocation.getLocationFromGPS();
@@ -568,7 +590,8 @@ class _HomeState extends State<Home> {
                           },
                           icon: Icon(Icons.location_on),
                           iconSize: 180,
-                          tooltip: 'gets device location',
+                          tooltip:
+                              AppLocalizations.of(context)!.locationTooltip,
                           style: IconButton.styleFrom(elevation: 50),
                         ),
                       ],
@@ -683,7 +706,7 @@ class _HomeState extends State<Home> {
                   child: Transform.scale(
                     scale: .9,
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(28.0, 0.0, 28.0, 0.0),
+                      padding: const EdgeInsets.fromLTRB(18.0, 0.0, 18.0, 0.0),
                       child: Row(children: [
                         Expanded(
                           child: Card(
@@ -727,15 +750,15 @@ class _HomeState extends State<Home> {
                   child: Transform.scale(
                     scale: .9,
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(30.0, 8.0, 30.0, 8.0),
+                      padding: const EdgeInsets.fromLTRB(20.0, 0.0, 20.0, 0.0),
                       child: Card(
                         color: Colors.grey[800],
                         child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Flexible(
                               child: Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                    18.0, 8.0, 18.0, 8.0),
+                                padding: const EdgeInsets.all(18),
                                 child: Text(
                                   AppLocalizations.of(context)!.confirmSchedule,
                                   style: TextStyle(
@@ -760,9 +783,14 @@ class _HomeState extends State<Home> {
                                 onPressed: () async {
                                   bool isGranted = (await PermissionHandler
                                       .permissionsGranted)!;
-                                  scheduleSilence();
+
+                                  if (isGranted) {
+                                    scheduleSilence();
+                                  }
+
                                   if (!isGranted) {
                                     showDialog(
+                                        barrierColor: Colors.grey[800],
                                         context: context,
                                         builder: (BuildContext context) =>
                                             AlertDialog(
@@ -771,16 +799,27 @@ class _HomeState extends State<Home> {
                                                     onPressed: () async {
                                                       Navigator.of(context)
                                                           .pop();
-                                                      await PermissionHandler
-                                                              .openDoNotDisturbSetting()
-                                                          .then((value) =>
-                                                              scheduleSilence());
+                                                      await Permission
+                                                          .accessNotificationPolicy
+                                                          .request();
+                                                      await Future.delayed(
+                                                          const Duration(
+                                                              seconds: 2));
+                                                      OpenSettings
+                                                          .openVoiceControllDoNotDisturbModeSetting();
+                                                      scheduleSilence();
                                                     },
-                                                    child: const Text('Ok'))
+                                                    child: Text(
+                                                        AppLocalizations.of(
+                                                                context)!
+                                                            .ok))
                                               ],
-                                              title: Text('Access required'),
+                                              title: Text(
+                                                  AppLocalizations.of(context)!
+                                                      .doNotDistrubTitle),
                                               content: Text(
-                                                  'The app requires disturb access to function properly'),
+                                                  AppLocalizations.of(context)!
+                                                      .doNotDistrubBody),
                                             ));
                                     // Opens the Do Not Disturb Access settings to grant the access
 
@@ -800,68 +839,73 @@ class _HomeState extends State<Home> {
                     ),
                   ),
                 ),
-                SafeArea(
-                  child: Visibility(
-                      visible: schedulevisible,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.grey[700]),
-                        child: Text(AppLocalizations.of(context)!.corrections),
-                        onPressed: (() async {
-                          dynamic result = await Navigator.pushNamed(
-                              context, '/corrections',
-                              arguments: {
-                                'prayers': prayers,
-                                'latitude': latitude,
-                                'longitude': longitude,
-                                'day': day,
-                                'month': month,
-                                'year': year
-                              });
-                          print((result['prayers']));
+                Visibility(
+                    visible: schedulevisible,
+                    child: Transform.scale(
+                      scale: .9,
+                      child: SafeArea(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.grey[700]),
+                          child:
+                              Text(AppLocalizations.of(context)!.corrections),
+                          onPressed: (() async {
+                            dynamic result = await Navigator.pushNamed(
+                                context, '/corrections',
+                                arguments: {
+                                  'prayers': prayers,
+                                  'latitude': latitude,
+                                  'longitude': longitude,
+                                  'day': day,
+                                  'month': month,
+                                  'year': year
+                                });
+                            print((result['prayers']));
 
-                          Map correctedPrayers = {};
-                          correctedPrayers['Fajr'] = result['prayers']['Fajr'];
-                          correctedPrayers['Dhuhr'] =
-                              result['prayers']['Dhuhr'];
-                          correctedPrayers['Asr'] = result['prayers']['Asr'];
-                          correctedPrayers['Maghrib'] =
-                              result['prayers']['Maghrib'];
-                          correctedPrayers['Isha'] = result['prayers']['Isha'];
-                          CreateSchedule getNewSchedule = CreateSchedule(
-                              prayers: correctedPrayers,
-                              prewait: currentValueStartMap,
-                              wait: currentValueEndMap);
-                          await getNewSchedule.createSchedule();
-                          print(
-                              'was is das ${getNewSchedule.scheduleStart['Fajr']}');
-                          setState(() {
-                            oldPrayers['Fajr'] = DateFormat.Hm()
-                                .format(result['prayers']['Fajr']);
-                            oldPrayers['Dhuhr'] = DateFormat.Hm()
-                                .format(result['prayers']['Dhuhr']);
-                            oldPrayers['Asr'] = DateFormat.Hm()
-                                .format(result['prayers']['Asr']);
-                            oldPrayers['Maghrib'] = DateFormat.Hm()
-                                .format(result['prayers']['Maghrib']);
-                            oldPrayers['Isha'] = DateFormat.Hm()
-                                .format(result['prayers']['Isha']);
+                            Map correctedPrayers = {};
+                            correctedPrayers['Fajr'] =
+                                result['prayers']['Fajr'];
+                            correctedPrayers['Dhuhr'] =
+                                result['prayers']['Dhuhr'];
+                            correctedPrayers['Asr'] = result['prayers']['Asr'];
+                            correctedPrayers['Maghrib'] =
+                                result['prayers']['Maghrib'];
+                            correctedPrayers['Isha'] =
+                                result['prayers']['Isha'];
+                            CreateSchedule getNewSchedule = CreateSchedule(
+                                prayers: correctedPrayers,
+                                prewait: currentValueStartMap,
+                                wait: currentValueEndMap);
+                            await getNewSchedule.createSchedule();
+                            print(
+                                'was is das ${getNewSchedule.scheduleStart['Fajr']}');
+                            setState(() {
+                              oldPrayers['Fajr'] = DateFormat.Hm()
+                                  .format(result['prayers']['Fajr']);
+                              oldPrayers['Dhuhr'] = DateFormat.Hm()
+                                  .format(result['prayers']['Dhuhr']);
+                              oldPrayers['Asr'] = DateFormat.Hm()
+                                  .format(result['prayers']['Asr']);
+                              oldPrayers['Maghrib'] = DateFormat.Hm()
+                                  .format(result['prayers']['Maghrib']);
+                              oldPrayers['Isha'] = DateFormat.Hm()
+                                  .format(result['prayers']['Isha']);
 
-                            for (String key in scheduleStart.keys) {
-                              scheduleStart[key] =
-                                  getNewSchedule.scheduleStart[key]!;
-                              scheduleEnd[key] =
-                                  getNewSchedule.scheduleEnd[key]!;
-                            }
-                          });
-                        }),
-                      )),
-                ),
+                              for (String key in scheduleStart.keys) {
+                                scheduleStart[key] =
+                                    getNewSchedule.scheduleStart[key]!;
+                                scheduleEnd[key] =
+                                    getNewSchedule.scheduleEnd[key]!;
+                              }
+                            });
+                          }),
+                        ),
+                      ),
+                    )),
                 Visibility(
                     visible: confirmvisible,
                     child: Padding(
-                      padding:
-                          const EdgeInsets.fromLTRB(28.0, 0.0, 28.0, 250.0),
+                      padding: const EdgeInsets.all(8.0),
                       child: Column(
                         children: [
                           Card(
@@ -872,7 +916,7 @@ class _HomeState extends State<Home> {
                                   AppLocalizations.of(context)!
                                       .confirmationMessage,
                                   style: TextStyle(
-                                      fontSize: 20.0,
+                                      fontSize: 18.0,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.white)),
                             ),
@@ -899,7 +943,7 @@ class _HomeState extends State<Home> {
                           },
                           icon: Icon(Icons.edit),
                           iconSize: 40,
-                          tooltip: 'Edit current scheduling',
+                          tooltip: AppLocalizations.of(context)!.editTooltip,
                         ),
                       ),
                     ),
@@ -951,7 +995,8 @@ class _HomeState extends State<Home> {
                               },
                               icon: Icon(Icons.location_on),
                               iconSize: 40,
-                              tooltip: 'gets device location',
+                              tooltip:
+                                  AppLocalizations.of(context)!.locationTooltip,
                             ),
                           ],
                         ),
@@ -967,173 +1012,68 @@ class _HomeState extends State<Home> {
 
   @pragma('vm:entry-point')
   static void createSilence() async {
-    MuteSystemSounds().muteSystemSounds();
+    final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+    final preferred = widgetsBinding.window.locales;
+    const supported = AppLocalizations.supportedLocales;
+    final locale = basicLocaleListResolution(preferred, supported);
+    final l10n = await AppLocalizations.delegate.load(locale);
+    await LocalNotifications().showNotification(
+        title: l10n.notificationTitle, body: l10n.notificationBody);
+    await Future.delayed(const Duration(minutes: 5));
+    await MuteSystemSounds().muteSystemSounds();
   }
 
   @pragma('vm:entry-point')
-  static void disableSilence1() async {
-    MuteSystemSounds().enableSystemSounds();
-    LocalNotifications().cancelNotification1();
-  }
-
-  @pragma('vm:entry-point')
-  static void disableSilence2() async {
-    MuteSystemSounds().enableSystemSounds();
-    LocalNotifications().cancelNotification2();
-  }
-
-  @pragma('vm:entry-point')
-  static void disableSilence3() async {
-    MuteSystemSounds().enableSystemSounds();
-    LocalNotifications().cancelNotification3();
-  }
-
-  @pragma('vm:entry-point')
-  static void disableSilence4() async {
-    MuteSystemSounds().enableSystemSounds();
-    LocalNotifications().cancelNotification4();
-  }
-
-  @pragma('vm:entry-point')
-  static void disableSilence5() async {
-    MuteSystemSounds().enableSystemSounds();
-    LocalNotifications().cancelNotification5();
+  static void disableSilence() async {
+    await LocalNotifications().cancelNotification();
+    await MuteSystemSounds().enableSystemSounds();
   }
 
   void scheduleSilence() async {
-    int id = 0;
-
     try {
-      if (DateTime.parse(scheduleStart.values.toList()[0])
-          .isAfter(DateTime.now())) {
-        LocalNotifications notifySilence = LocalNotifications();
+      for (int i = 0; i < 5; i++) {
+        if (DateTime.parse(scheduleStart.values.toList()[i])
+            .isAfter(DateTime.now())) {
+          await AndroidAlarmManager.oneShotAt(
+              DateTime.parse(scheduleStart.values.toList()[i])
+                  .subtract(const Duration(minutes: 5)),
+              100 - i,
+              rescheduleOnReboot: true,
+              exact: true,
+              createSilence);
 
-        await notifySilence.showNotification(
-            id: 9,
-            title: 'Prayer Time Silencer',
-            body: 'Your Phone is being silenced',
-            schedule: DateTime.parse(scheduleStart.values.toList()[0]));
+          await AndroidAlarmManager.oneShotAt(
+              DateTime.parse(scheduleEnd.values.toList()[i]),
+              1000 - i,
+              rescheduleOnReboot: true,
+              exact: true,
+              disableSilence);
 
-        await AndroidAlarmManager.oneShotAt(
-            DateTime.parse(scheduleStart.values.toList()[0]),
-            99,
-            rescheduleOnReboot: true,
-            exact: true,
-            createSilence);
+          print('is this working?${scheduleStart.values.toList()[i]}');
+        }
+        if (DateTime.parse(scheduleStart.values.toList()[i])
+            .isBefore(DateTime.now())) {
+          await AndroidAlarmManager.oneShotAt(
+              DateTime.parse(scheduleStart.values.toList()[i])
+                  .add(const Duration(days: 1))
+                  .subtract(const Duration(minutes: 5)),
+              200 - i,
+              rescheduleOnReboot: true,
+              exact: true,
+              createSilence);
 
-        await AndroidAlarmManager.oneShotAt(
-            DateTime.parse(scheduleEnd.values.toList()[0]),
-            999,
-            rescheduleOnReboot: true,
-            exact: true,
-            disableSilence1);
+          await AndroidAlarmManager.oneShotAt(
+              DateTime.parse(scheduleEnd.values.toList()[i])
+                  .add(const Duration(days: 1)),
+              2000 - i,
+              rescheduleOnReboot: true,
+              exact: true,
+              disableSilence);
 
-        print('is this working?${scheduleStart.values.toList()[0]}');
+          print(
+              'is this working for next day?${DateTime.parse(scheduleEnd.values.toList()[i]).add(const Duration(days: 1))}');
+        }
       }
-
-      if (DateTime.parse(scheduleStart.values.toList()[1])
-          .isAfter(DateTime.now())) {
-        LocalNotifications notifySilence = LocalNotifications();
-
-        await notifySilence.showNotification(
-            id: 1,
-            title: 'Prayer Time Silencer',
-            body: 'Your Phone is being silenced',
-            schedule: DateTime.parse(scheduleStart.values.toList()[1]));
-
-        await AndroidAlarmManager.oneShotAt(
-            DateTime.parse(scheduleStart.values.toList()[1]),
-            11,
-            rescheduleOnReboot: true,
-            exact: true,
-            createSilence);
-        print('is this working?${scheduleStart.values.toList()[1]}');
-
-        await AndroidAlarmManager.oneShotAt(
-            DateTime.parse(scheduleEnd.values.toList()[1]),
-            111,
-            rescheduleOnReboot: true,
-            exact: true,
-            disableSilence2);
-      }
-
-      if (DateTime.parse(scheduleStart.values.toList()[2])
-          .isAfter(DateTime.now())) {
-        LocalNotifications notifySilence = LocalNotifications();
-
-        await notifySilence.showNotification(
-            id: 2,
-            title: 'Prayer Time Silencer',
-            body: 'Your Phone is being silenced',
-            schedule: DateTime.parse(scheduleStart.values.toList()[2]));
-
-        await AndroidAlarmManager.oneShotAt(
-            DateTime.parse(scheduleStart.values.toList()[2]),
-            22,
-            rescheduleOnReboot: true,
-            exact: true,
-            createSilence);
-
-        await AndroidAlarmManager.oneShotAt(
-            DateTime.parse(scheduleEnd.values.toList()[2]),
-            222,
-            rescheduleOnReboot: true,
-            exact: true,
-            disableSilence3);
-        print('is this working?${scheduleStart.values.toList()[2]}');
-      }
-
-      if (DateTime.parse(scheduleStart.values.toList()[3])
-          .isAfter(DateTime.now())) {
-        LocalNotifications notifySilence = LocalNotifications();
-
-        await notifySilence.showNotification(
-            id: 3,
-            title: 'Prayer Time Silencer',
-            body: 'Your Phone is being silenced',
-            schedule: DateTime.parse(scheduleStart.values.toList()[3]));
-
-        await AndroidAlarmManager.oneShotAt(
-            DateTime.parse(scheduleStart.values.toList()[3]),
-            33,
-            rescheduleOnReboot: true,
-            exact: true,
-            createSilence);
-
-        await AndroidAlarmManager.oneShotAt(
-            DateTime.parse(scheduleEnd.values.toList()[3]),
-            333,
-            rescheduleOnReboot: true,
-            exact: true,
-            disableSilence4);
-        print('is this working?${scheduleStart.values.toList()[3]}');
-      }
-
-      if (DateTime.parse(scheduleStart.values.toList()[4])
-          .isAfter(DateTime.now())) {
-        LocalNotifications notifySilence = LocalNotifications();
-
-        await notifySilence.showNotification(
-            id: 4,
-            title: 'Prayer Time Silencer',
-            body: 'Your Phone is being silenced',
-            schedule: DateTime.parse(scheduleStart.values.toList()[4]));
-
-        await AndroidAlarmManager.oneShotAt(
-            DateTime.parse(scheduleStart.values.toList()[4]),
-            44,
-            rescheduleOnReboot: true,
-            exact: true,
-            createSilence);
-
-        await AndroidAlarmManager.oneShotAt(
-            DateTime.parse(scheduleEnd.values.toList()[4]),
-            444,
-            rescheduleOnReboot: true,
-            exact: true,
-            disableSilence5);
-        print('is this working?${scheduleStart.values.toList()[4]}');
-      } else {}
     } catch (e) {
       TimingsLocal localinstance =
           TimingsLocal(day: day, month: month, year: year);
@@ -1147,136 +1087,49 @@ class _HomeState extends State<Home> {
       await getSchedule.createSchedule();
       scheduleStart = getSchedule.scheduleStart;
       scheduleEnd = getSchedule.scheduleEnd;
-      if (DateTime.parse(scheduleStart.values.toList()[0])
-          .isAfter(DateTime.now())) {
-        LocalNotifications notifySilence = LocalNotifications();
+      for (int i = 0; i < 5; i++) {
+        if (DateTime.parse(scheduleStart.values.toList()[i])
+            .isAfter(DateTime.now())) {
+          await AndroidAlarmManager.oneShotAt(
+              DateTime.parse(scheduleStart.values.toList()[i])
+                  .subtract(const Duration(minutes: 5)),
+              100 - i,
+              rescheduleOnReboot: true,
+              exact: true,
+              createSilence);
 
-        await notifySilence.showNotification(
-            id: 9,
-            title: 'Prayer Time Silencer',
-            body: 'Your Phone is being silenced',
-            schedule: DateTime.parse(scheduleStart.values.toList()[0]));
+          await AndroidAlarmManager.oneShotAt(
+              DateTime.parse(scheduleEnd.values.toList()[i]),
+              1000 - i,
+              rescheduleOnReboot: true,
+              exact: true,
+              disableSilence);
 
-        await AndroidAlarmManager.oneShotAt(
-            DateTime.parse(scheduleStart.values.toList()[0]),
-            99,
-            rescheduleOnReboot: true,
-            exact: true,
-            createSilence);
+          print('is this working?${scheduleStart.values.toList()[i]}');
+        }
+        if (DateTime.parse(scheduleStart.values.toList()[i])
+            .isBefore(DateTime.now())) {
+          await AndroidAlarmManager.oneShotAt(
+              DateTime.parse(scheduleStart.values.toList()[i])
+                  .add(const Duration(days: 1))
+                  .subtract(const Duration(minutes: 5)),
+              200 - i,
+              rescheduleOnReboot: true,
+              exact: true,
+              createSilence);
 
-        await AndroidAlarmManager.oneShotAt(
-            DateTime.parse(scheduleEnd.values.toList()[0]),
-            999,
-            rescheduleOnReboot: true,
-            exact: true,
-            disableSilence1);
+          await AndroidAlarmManager.oneShotAt(
+              DateTime.parse(scheduleEnd.values.toList()[i])
+                  .add(const Duration(days: 1)),
+              2000 - i,
+              rescheduleOnReboot: true,
+              exact: true,
+              disableSilence);
 
-        print('is this working?${scheduleStart.values.toList()[0]}');
+          print(
+              'is this working for next day?${DateTime.parse(scheduleEnd.values.toList()[i]).add(const Duration(days: 1))}');
+        }
       }
-
-      if (DateTime.parse(scheduleStart.values.toList()[1])
-          .isAfter(DateTime.now())) {
-        LocalNotifications notifySilence = LocalNotifications();
-
-        await notifySilence.showNotification(
-            id: 1,
-            title: 'Prayer Time Silencer',
-            body: 'Your Phone is being silenced',
-            schedule: DateTime.parse(scheduleStart.values.toList()[1]));
-
-        await AndroidAlarmManager.oneShotAt(
-            DateTime.parse(scheduleStart.values.toList()[1]),
-            11,
-            rescheduleOnReboot: true,
-            exact: true,
-            createSilence);
-        print('is this working?${scheduleStart.values.toList()[1]}');
-
-        await AndroidAlarmManager.oneShotAt(
-            DateTime.parse(scheduleEnd.values.toList()[1]),
-            111,
-            rescheduleOnReboot: true,
-            exact: true,
-            disableSilence2);
-      }
-
-      if (DateTime.parse(scheduleStart.values.toList()[2])
-          .isAfter(DateTime.now())) {
-        LocalNotifications notifySilence = LocalNotifications();
-
-        await notifySilence.showNotification(
-            id: 2,
-            title: 'Prayer Time Silencer',
-            body: 'Your Phone is being silenced',
-            schedule: DateTime.parse(scheduleStart.values.toList()[2]));
-
-        await AndroidAlarmManager.oneShotAt(
-            DateTime.parse(scheduleStart.values.toList()[2]),
-            22,
-            rescheduleOnReboot: true,
-            exact: true,
-            createSilence);
-
-        await AndroidAlarmManager.oneShotAt(
-            DateTime.parse(scheduleEnd.values.toList()[2]),
-            222,
-            rescheduleOnReboot: true,
-            exact: true,
-            disableSilence3);
-        print('is this working?${scheduleStart.values.toList()[2]}');
-      }
-
-      if (DateTime.parse(scheduleStart.values.toList()[3])
-          .isAfter(DateTime.now())) {
-        LocalNotifications notifySilence = LocalNotifications();
-
-        await notifySilence.showNotification(
-            id: 3,
-            title: 'Prayer Time Silencer',
-            body: 'Your Phone is being silenced',
-            schedule: DateTime.parse(scheduleStart.values.toList()[3]));
-
-        await AndroidAlarmManager.oneShotAt(
-            DateTime.parse(scheduleStart.values.toList()[3]),
-            33,
-            rescheduleOnReboot: true,
-            exact: true,
-            createSilence);
-
-        await AndroidAlarmManager.oneShotAt(
-            DateTime.parse(scheduleEnd.values.toList()[3]),
-            333,
-            rescheduleOnReboot: true,
-            exact: true,
-            disableSilence4);
-        print('is this working?${scheduleStart.values.toList()[3]}');
-      }
-
-      if (DateTime.parse(scheduleStart.values.toList()[4])
-          .isAfter(DateTime.now())) {
-        LocalNotifications notifySilence = LocalNotifications();
-
-        await notifySilence.showNotification(
-            id: 4,
-            title: 'Prayer Time Silencer',
-            body: 'Your Phone is being silenced',
-            schedule: DateTime.parse(scheduleStart.values.toList()[4]));
-
-        await AndroidAlarmManager.oneShotAt(
-            DateTime.parse(scheduleStart.values.toList()[4]),
-            44,
-            rescheduleOnReboot: true,
-            exact: true,
-            createSilence);
-
-        await AndroidAlarmManager.oneShotAt(
-            DateTime.parse(scheduleEnd.values.toList()[4]),
-            444,
-            rescheduleOnReboot: true,
-            exact: true,
-            disableSilence5);
-        print('is this working?${scheduleStart.values.toList()[4]}');
-      } else {}
 
       print(e);
     }
