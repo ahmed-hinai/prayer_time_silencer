@@ -2,19 +2,20 @@ import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'dart:io';
 import 'package:prayer_time_silencer/services/get_device_location.dart';
 import 'package:prayer_time_silencer/services/get_prayer_times.dart';
 import 'package:prayer_time_silencer/services/get_prayer_times_local.dart';
 import 'package:prayer_time_silencer/services/set_device_silent.dart';
 import 'package:prayer_time_silencer/services/silence_scheduler.dart';
 import 'package:prayer_time_silencer/services/corrections_store.dart';
+import 'package:prayer_time_silencer/services/wait_and_prewait_store.dart';
 import 'package:prayer_time_silencer/services/push_local_notifications.dart';
 import 'package:sound_mode/permission_handler.dart';
-import 'package:path/path.dart';
 import 'package:background_fetch/background_fetch.dart';
 import 'package:simple_animations/simple_animations.dart';
 import 'package:numberpicker/numberpicker.dart';
+import 'package:prayer_time_silencer/main.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -29,11 +30,53 @@ class _HomeState extends State<Home> {
   int _currentValueStart = 5;
   int _currentValueEnd = 40;
   List<DateTime> _events = [];
+  Map currentValueStartMap = {
+    'Fajr': '5',
+    'Dhuhr': '5',
+    'Asr': '5',
+    'Maghrib': '5',
+    'Isha': '5'
+  };
+  Map currentValueEndMap = {
+    'Fajr': '40',
+    'Dhuhr': '40',
+    'Asr': '40',
+    'Maghrib': '40',
+    'Isha': '40'
+  };
 
+  void getValueStartMap() async {
+    try {
+      Map newStart = await WaitAndPreWaitStoreStart().readWaitAndPreWait();
+      print('is this really a new start${newStart}');
+      for (String key in newStart.keys) {
+        currentValueStartMap[key] = newStart[key];
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Map oldValueStartMap = {};
+
+  void getValueEndMap() async {
+    try {
+      Map newEnd = await WaitAndPreWaitStoreEnd().readWaitAndPreWait();
+      for (String key in newEnd.keys) {
+        currentValueEndMap[key] = newEnd[key];
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Map oldValueEndMap = {};
   void initState() {
     super.initState();
     initPlatformState();
     getLocaltimings();
+    getValueStartMap();
+    getValueEndMap();
   }
 
   static Future<void> pop({bool? animated}) async {
@@ -107,45 +150,6 @@ class _HomeState extends State<Home> {
     });
   }
 
-  final _timePickerTheme = TimePickerThemeData(
-    backgroundColor: Colors.grey[800],
-    hourMinuteShape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.all(Radius.circular(8)),
-      side: BorderSide(color: Colors.blue, width: 4),
-    ),
-    dayPeriodBorderSide: const BorderSide(color: Colors.blue, width: 4),
-    dayPeriodColor: Colors.blueGrey.shade600,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.all(Radius.circular(8)),
-      side: BorderSide(color: Colors.blue, width: 4),
-    ),
-    dayPeriodTextColor: Colors.white,
-    dayPeriodShape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.all(Radius.circular(8)),
-      side: BorderSide(color: Colors.blueAccent, width: 4),
-    ),
-    hourMinuteColor: MaterialStateColor.resolveWith((states) =>
-        states.contains(MaterialState.selected)
-            ? Colors.blue
-            : Colors.blueGrey.shade800),
-    hourMinuteTextColor: MaterialStateColor.resolveWith((states) =>
-        states.contains(MaterialState.selected) ? Colors.white : Colors.blue),
-    dialHandColor: Colors.blueGrey.shade700,
-    dialBackgroundColor: Colors.blueGrey.shade800,
-    hourMinuteTextStyle:
-        const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-    dayPeriodTextStyle:
-        const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-    helpTextStyle: const TextStyle(
-        fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
-    inputDecorationTheme: const InputDecorationTheme(
-      border: InputBorder.none,
-      contentPadding: EdgeInsets.all(0),
-    ),
-    dialTextColor: MaterialStateColor.resolveWith((states) =>
-        states.contains(MaterialState.selected) ? Colors.blue : Colors.white),
-    entryModeIconColor: Colors.blue[900],
-  );
   late var timeSelected;
 
   late double latitude;
@@ -158,6 +162,7 @@ class _HomeState extends State<Home> {
   bool schedulevisible = false;
   bool confirmvisible = false;
   bool timingsvisible = true;
+  List<bool> selections = [true, false, false, false, false];
   Map<String, dynamic> oldPrayers = {
     'Fajr': DateFormat.Hm().format(DateTime.now()),
     'Dhuhr': DateFormat.Hm().format(DateTime.now()),
@@ -165,6 +170,8 @@ class _HomeState extends State<Home> {
     'Maghrib': DateFormat.Hm().format(DateTime.now()),
     'Isha': DateFormat.Hm().format(DateTime.now())
   };
+
+  List localizedPrayerNames = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
   late var data;
   static Map<String, DateTime> prayers = {};
   Map<String, String> scheduleStart = {};
@@ -178,14 +185,34 @@ class _HomeState extends State<Home> {
       prayers = localinstance.prayers;
       CreateSchedule getSchedule = CreateSchedule(
           prayers: prayers,
-          prewait: _currentValueStart,
-          wait: _currentValueEnd);
+          prewait: currentValueStartMap,
+          wait: currentValueEndMap);
       await getSchedule.createSchedule();
       scheduleStart = getSchedule.scheduleStart;
       scheduleEnd = getSchedule.scheduleEnd;
     } catch (e) {
       print(e);
     }
+  }
+
+  int getValueStart(selections) {
+    for (int i = 0; i < 5; i++) {
+      switch (selections[i]) {
+        case true:
+          return int.parse(currentValueStartMap.values.toList()[i]);
+      }
+    }
+    return 0;
+  }
+
+  int getValueEnd(selections) {
+    for (int i = 0; i < 5; i++) {
+      switch (selections[i]) {
+        case true:
+          return int.parse(currentValueEndMap.values.toList()[i]);
+      }
+    }
+    return 0;
   }
 
   @override
@@ -204,53 +231,76 @@ class _HomeState extends State<Home> {
         resizeToAvoidBottomInset: false,
         drawer: Drawer(
           backgroundColor: Colors.blue[900],
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(18.0),
-                child: TextField(
-                  onSubmitted: ((text) async {
-                    Navigator.pop(context);
-                    GetLocationFromInput newLocation =
-                        GetLocationFromInput(location: text);
-                    await newLocation.getLocationFromUserInput();
-                    latitude = newLocation.latitude;
-                    longitude = newLocation.longitude;
-                    CorrectionsStorage storedCorrections = CorrectionsStorage();
-                    var newCorrections =
-                        await storedCorrections.readCorrections();
-                    Timings instance = Timings(
-                        lat: latitude,
-                        long: longitude,
-                        day: day,
-                        month: month,
-                        year: year,
-                        corrections: newCorrections);
-                    await instance.getTimings();
-                    prayers = instance.prayers;
-                    setState(() {
-                      for (String key in oldPrayers.keys) {
-                        oldPrayers[key] = DateFormat.Hm().format(prayers[key]!);
-                        timingsvisible = true;
-                        schedulevisible = true;
-                        confirmvisible = false;
-                      }
-                    });
-                    ;
-                  }),
-                  onChanged: (value) {
-                    print('First text field: $value');
-                  },
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(),
-                    hintText: 'Enter location',
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    AppLocalizations.of(context)!.enterToRetrievePrayerTimes,
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold),
                   ),
                 ),
-              )
-            ],
+                Padding(
+                  padding: const EdgeInsets.all(18.0),
+                  child: TextField(
+                    onSubmitted: ((text) async {
+                      Navigator.pop(context);
+                      GetLocationFromInput newLocation =
+                          GetLocationFromInput(location: text);
+                      await newLocation.getLocationFromUserInput();
+                      latitude = newLocation.latitude;
+                      longitude = newLocation.longitude;
+                      CorrectionsStorage storedCorrections =
+                          CorrectionsStorage();
+                      var newCorrections =
+                          await storedCorrections.readCorrections();
+                      Timings instance = Timings(
+                          lat: latitude,
+                          long: longitude,
+                          day: day,
+                          month: month,
+                          year: year,
+                          corrections: newCorrections);
+                      await instance.getTimings();
+                      prayers = instance.prayers;
+                      CreateSchedule getSchedule = CreateSchedule(
+                          prayers: prayers,
+                          prewait: currentValueStartMap,
+                          wait: currentValueEndMap);
+                      await getSchedule.createSchedule();
+                      scheduleStart = getSchedule.scheduleStart;
+                      scheduleEnd = getSchedule.scheduleEnd;
+                      setState(() {
+                        for (String key in oldPrayers.keys) {
+                          oldPrayers[key] =
+                              DateFormat.Hm().format(prayers[key]!);
+                          timingsvisible = true;
+                          schedulevisible = true;
+                          confirmvisible = false;
+                          gpsvisible = false;
+                        }
+                      });
+                      ;
+                    }),
+                    onChanged: (value) {
+                      print('First text field: $value');
+                    },
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(),
+                      hintText: AppLocalizations.of(context)!.enterLocation,
+                    ),
+                  ),
+                )
+              ],
+            ),
           ),
         ),
         appBar: AppBar(
@@ -265,13 +315,20 @@ class _HomeState extends State<Home> {
                 child: Switch(value: _enabled, onChanged: _onClickEnable)),
             PopupMenuButton<String>(
               itemBuilder: (BuildContext context) {
-                return {'About us', 'Settings'}.map((String choice) {
+                return {
+                  AppLocalizations.of(context)!.settings,
+                  AppLocalizations.of(context)!.aboutUs
+                }.map((String choice) {
                   return PopupMenuItem<String>(
                     value: choice,
                     child: Text(choice),
                     onTap: () async {
                       await Future.delayed(const Duration(milliseconds: 1));
-                      await Navigator.pushNamed(context, '/${choice}');
+                      await choice == AppLocalizations.of(context)!.aboutUs
+                          ? Navigator.pushNamed(context, '/About us')
+                          : choice == AppLocalizations.of(context)!.settings
+                              ? Navigator.pushNamed(context, '/Settings')
+                              : () {};
                     },
                   );
                 }).toList();
@@ -287,111 +344,172 @@ class _HomeState extends State<Home> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(18.0, 1.0, 18.0, 1.0),
                   child: Visibility(
-                    visible: timingsvisible,
-                    child: ListView.builder(
-                        physics: const NeverScrollableScrollPhysics(),
-                        shrinkWrap: true,
-                        itemCount: prayers.length,
-                        itemBuilder: ((context, index) {
-                          return Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Expanded(
-                                    flex: 8,
-                                    child: Card(
-                                      color: Colors.blue[900],
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(70.0)),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Center(
-                                          child: Text(
-                                            '${oldPrayers.keys.toList()[index]}',
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 16.0,
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    flex: 12,
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          child: Card(
-                                            color: Colors.grey[600],
-                                            child: Center(
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.all(8.0),
-                                                child: Text(
-                                                  '${DateFormat.Hm().format(DateTime.parse(scheduleStart.values.toList()[index]))}',
-                                                  style: TextStyle(
-                                                      fontSize: 16.0,
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.bold),
+                      visible: timingsvisible,
+                      child: Transform.scale(
+                        scale: .9,
+                        child: ListView.builder(
+                            physics: const NeverScrollableScrollPhysics(),
+                            shrinkWrap: true,
+                            itemCount: prayers.length,
+                            itemBuilder: ((context, index) {
+                              return Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(child: LayoutBuilder(
+                                        builder: (context, constraints) {
+                                      return ToggleButtons(
+                                        borderWidth: 3.0,
+                                        selectedBorderColor: Colors.blue[600],
+                                        borderRadius: BorderRadius.circular(70),
+                                        constraints: BoxConstraints.expand(
+                                            width: constraints.maxWidth / 1.03),
+                                        isSelected: [selections[index]],
+                                        onPressed: (indexx) {
+                                          setState(() {
+                                            for (int i = 0;
+                                                i < selections.length;
+                                                i++) {
+                                              selections[i] = i == index;
+                                              // selections[index] = !selections[index];
+                                            }
+                                          });
+                                        },
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Expanded(
+                                                flex: 8,
+                                                child: Card(
+                                                  color: Colors.blue[900],
+                                                  shape: RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              70.0)),
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
+                                                    child: Center(
+                                                      child: Text(
+                                                        index == 0
+                                                            ? AppLocalizations
+                                                                    .of(
+                                                                        context)!
+                                                                .fajr
+                                                            : index == 1
+                                                                ? AppLocalizations.of(
+                                                                        context)!
+                                                                    .dhuhr
+                                                                : index == 2
+                                                                    ? AppLocalizations.of(
+                                                                            context)!
+                                                                        .asr
+                                                                    : index == 3
+                                                                        ? AppLocalizations.of(context)!
+                                                                            .maghrib
+                                                                        : index ==
+                                                                                4
+                                                                            ? AppLocalizations.of(context)!.isha
+                                                                            : '',
+                                                        style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: 16.0,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold),
+                                                      ),
+                                                    ),
+                                                  ),
                                                 ),
                                               ),
-                                            ),
-                                          ),
-                                        ),
-                                        Expanded(
-                                          child: Card(
-                                            color: Colors.grey[600],
-                                            child: Center(
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.all(8.0),
-                                                child: Text(
-                                                    '${DateFormat.Hm().format(DateTime.parse(scheduleEnd.values.toList()[index]))}',
-                                                    style: TextStyle(
-                                                        fontSize: 16.0,
-                                                        color: Colors.white,
-                                                        fontWeight:
-                                                            FontWeight.bold)),
+                                              Expanded(
+                                                flex: 12,
+                                                child: Row(
+                                                  children: [
+                                                    Expanded(
+                                                      child: Card(
+                                                        color: Colors.grey[600],
+                                                        child: Center(
+                                                          child: Padding(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .all(8.0),
+                                                            child: Text(
+                                                              '${DateFormat.Hm().format(DateTime.parse(scheduleStart.values.toList()[index]))}',
+                                                              style: TextStyle(
+                                                                  fontSize:
+                                                                      16.0,
+                                                                  color: Colors
+                                                                      .white,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Expanded(
+                                                      child: Card(
+                                                        color: Colors.grey[600],
+                                                        child: Center(
+                                                          child: Padding(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .all(8.0),
+                                                            child: Text(
+                                                                '${DateFormat.Hm().format(DateTime.parse(scheduleEnd.values.toList()[index]))}',
+                                                                style: TextStyle(
+                                                                    fontSize:
+                                                                        16.0,
+                                                                    color: Colors
+                                                                        .white,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold)),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Expanded(
-                                    flex: 8,
-                                    child: Card(
-                                      color: Colors.blue[900],
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(70.0)),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Center(
-                                          child: Text(
-                                            '${oldPrayers.values.toList()[index]}',
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 16.0,
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ],
-                          );
-                          ;
-                        })),
-                  ),
+                                              Expanded(
+                                                flex: 8,
+                                                child: Card(
+                                                  color: Colors.blue[900],
+                                                  shape: RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              70.0)),
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
+                                                    child: Center(
+                                                      child: Text(
+                                                        '${oldPrayers.values.toList()[index]}',
+                                                        style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: 16.0,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              )
+                                            ],
+                                          )
+                                        ],
+                                      );
+                                    })),
+                                  ]);
+                            })),
+                      )),
                 ),
                 Visibility(
                   visible: gpsvisible,
@@ -432,8 +550,8 @@ class _HomeState extends State<Home> {
                             prayers = instance.prayers;
                             CreateSchedule getSchedule = CreateSchedule(
                                 prayers: prayers,
-                                prewait: _currentValueStart,
-                                wait: _currentValueEnd);
+                                prewait: currentValueStartMap,
+                                wait: currentValueEndMap);
                             await getSchedule.createSchedule();
                             scheduleStart = getSchedule.scheduleStart;
                             scheduleEnd = getSchedule.scheduleEnd;
@@ -449,8 +567,9 @@ class _HomeState extends State<Home> {
                             ;
                           },
                           icon: Icon(Icons.location_on),
-                          iconSize: 80,
+                          iconSize: 180,
                           tooltip: 'gets device location',
+                          style: IconButton.styleFrom(elevation: 50),
                         ),
                       ],
                     ),
@@ -460,181 +579,223 @@ class _HomeState extends State<Home> {
                   maintainAnimation: true,
                   maintainState: true,
                   visible: schedulevisible,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(18.0, 1.0, 18.0, 1.0),
-                    child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Flexible(
-                            child: Card(
-                              color: Colors.grey[600],
-                              child: NumberPicker(
-                                itemWidth: 168.0,
-                                textStyle: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold),
-                                value: _currentValueStart,
-                                minValue: 0,
-                                maxValue: 20,
-                                onChanged: (value) => setState(() {
-                                  int oldValueStart = _currentValueStart;
-                                  _currentValueStart = value;
-                                  for (String key in scheduleStart.keys) {
-                                    scheduleStart[key] = DateTime.parse(
-                                            scheduleStart[key].toString())
-                                        .subtract(
-                                            Duration(minutes: oldValueStart))
-                                        .add(Duration(
-                                            minutes: _currentValueStart))
-                                        .toString();
-                                  }
-                                }),
+                  child: Transform.scale(
+                    scale: .9,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(18.0, 1.0, 18.0, 1.0),
+                      child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Flexible(
+                              child: Card(
+                                color: Colors.grey[600],
+                                child: Container(
+                                  child: NumberPicker(
+                                    itemWidth: 168.0,
+                                    textStyle: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold),
+                                    value: getValueStart(selections),
+                                    minValue: 0,
+                                    maxValue: 20,
+                                    onChanged: (value) => setState(() {
+                                      for (String key in scheduleStart.keys) {
+                                        switch (selections[scheduleStart.keys
+                                            .toList()
+                                            .indexOf(key)]) {
+                                          case true:
+                                            oldValueStartMap[key] =
+                                                currentValueStartMap[key];
+                                            currentValueStartMap[key] =
+                                                value.toString();
+                                            scheduleStart[key] = DateTime.parse(
+                                                    scheduleStart[key]
+                                                        .toString())
+                                                .subtract(Duration(
+                                                    minutes: int.parse(
+                                                        oldValueStartMap[key])))
+                                                .add(Duration(
+                                                    minutes: int.parse(
+                                                        currentValueStartMap[
+                                                            key])))
+                                                .toString();
+                                            break;
+                                          default:
+                                        }
+                                      }
+                                      WaitAndPreWaitStoreStart()
+                                          .writeWaitAndPreWait(
+                                              currentValueStartMap);
+                                    }),
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                          Flexible(
-                            child: Card(
-                              color: Colors.grey[600],
-                              child: NumberPicker(
+                            Flexible(
+                              child: Card(
+                                color: Colors.grey[600],
+                                child: NumberPicker(
                                   itemWidth: 168.0,
                                   textStyle: TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold),
-                                  value: _currentValueEnd,
+                                  value: getValueEnd(selections),
                                   minValue: 20,
                                   maxValue: 60,
                                   onChanged: (value) => setState(() {
-                                        int oldValueEnd = _currentValueEnd;
-                                        _currentValueEnd = value;
-                                        for (String key in scheduleEnd.keys) {
+                                    for (String key in scheduleEnd.keys) {
+                                      switch (selections[scheduleEnd.keys
+                                          .toList()
+                                          .indexOf(key)]) {
+                                        case true:
+                                          oldValueEndMap[key] =
+                                              currentValueEndMap[key];
+                                          currentValueEndMap[key] =
+                                              value.toString();
                                           scheduleEnd[key] = DateTime.parse(
                                                   scheduleEnd[key].toString())
                                               .subtract(Duration(
-                                                  minutes: oldValueEnd))
+                                                  minutes: int.parse(
+                                                      oldValueEndMap[key])))
                                               .add(Duration(
-                                                  minutes: _currentValueEnd))
+                                                  minutes: int.parse(
+                                                      currentValueEndMap[key])))
                                               .toString();
-                                        }
-                                      })),
+                                          break;
+                                        default:
+                                      }
+                                    }
+                                    WaitAndPreWaitStoreEnd()
+                                        .writeWaitAndPreWait(
+                                            currentValueEndMap);
+                                  }),
+                                ),
+                              ),
                             ),
-                          ),
-                        ]),
+                          ]),
+                    ),
                   ),
                 ),
                 Visibility(
                   maintainAnimation: true,
                   maintainState: true,
                   visible: schedulevisible,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(28.0, 0.0, 28.0, 0.0),
-                    child: Row(children: [
-                      Expanded(
-                        child: Card(
+                  child: Transform.scale(
+                    scale: .9,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(28.0, 0.0, 28.0, 0.0),
+                      child: Row(children: [
+                        Expanded(
+                          child: Card(
+                              color: Colors.grey[600],
+                              child: Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                    18.0, 8.0, 18.0, 8.0),
+                                child: Text(
+                                  AppLocalizations.of(context)!.startSchedule,
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12.0,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              )),
+                        ),
+                        Expanded(
+                          child: Card(
                             color: Colors.grey[600],
                             child: Padding(
                               padding: const EdgeInsets.fromLTRB(
                                   18.0, 8.0, 18.0, 8.0),
                               child: Text(
-                                'Start of scheduling',
+                                AppLocalizations.of(context)!.endSchedule,
                                 style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 12.0,
                                     fontWeight: FontWeight.bold),
                               ),
-                            )),
-                      ),
-                      Expanded(
-                        child: Card(
-                          color: Colors.grey[600],
-                          child: Padding(
-                            padding:
-                                const EdgeInsets.fromLTRB(18.0, 8.0, 18.0, 8.0),
-                            child: Text(
-                              'End of scheduling',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12.0,
-                                  fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),
-                      ),
-                    ]),
+                      ]),
+                    ),
                   ),
                 ),
                 Visibility(
                   maintainAnimation: true,
                   maintainState: true,
                   visible: schedulevisible,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(30.0, 8.0, 30.0, 8.0),
-                    child: Card(
-                      color: Colors.grey[800],
-                      child: Row(
-                        children: [
-                          Flexible(
-                            child: Padding(
-                              padding: const EdgeInsets.fromLTRB(
-                                  18.0, 8.0, 18.0, 8.0),
-                              child: Text(
-                                'Schedule Times of Silence.',
-                                style: TextStyle(
-                                    fontSize: 16.0,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white),
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: ElevatedButton(
+                  child: Transform.scale(
+                    scale: .9,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(30.0, 8.0, 30.0, 8.0),
+                      child: Card(
+                        color: Colors.grey[800],
+                        child: Row(
+                          children: [
+                            Flexible(
                               child: Padding(
-                                padding: const EdgeInsets.all(48.0),
-                                child: Icon(Icons.check,
-                                    color: Colors.white, size: 30.0),
+                                padding: const EdgeInsets.fromLTRB(
+                                    18.0, 8.0, 18.0, 8.0),
+                                child: Text(
+                                  AppLocalizations.of(context)!.confirmSchedule,
+                                  style: TextStyle(
+                                      fontSize: 18.0,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white),
+                                ),
                               ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue[900],
-                                elevation: 20.0,
-                              ),
-                              onPressed: () async {
-                                bool isGranted = (await PermissionHandler
-                                    .permissionsGranted)!;
-                                scheduleSilence();
-                                if (!isGranted) {
-                                  showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) =>
-                                          AlertDialog(
-                                            actions: [
-                                              TextButton(
-                                                  onPressed: () async {
-                                                    Navigator.of(context).pop();
-                                                    await PermissionHandler
-                                                        .openDoNotDisturbSetting();
-                                                    await Future.delayed(
-                                                        Duration(seconds: 5));
-
-                                                    scheduleSilence();
-                                                  },
-                                                  child: const Text('Ok'))
-                                            ],
-                                            title: Text('Access required'),
-                                            content: Text(
-                                                'The app requires disturb access to function properly'),
-                                          ));
-                                  // Opens the Do Not Disturb Access settings to grant the access
-
-                                }
-
-                                setState(() {
-                                  schedulevisible = false;
-                                  timingsvisible = false;
-                                  confirmvisible = true;
-                                });
-                              },
                             ),
-                          ),
-                        ],
+                            Expanded(
+                              child: ElevatedButton(
+                                child: Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                      0.0, 48.0, 0.0, 48.0),
+                                  child: Icon(Icons.check,
+                                      color: Colors.white, size: 30.0),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue[900],
+                                  elevation: 20.0,
+                                ),
+                                onPressed: () async {
+                                  bool isGranted = (await PermissionHandler
+                                      .permissionsGranted)!;
+                                  scheduleSilence();
+                                  if (!isGranted) {
+                                    showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) =>
+                                            AlertDialog(
+                                              actions: [
+                                                TextButton(
+                                                    onPressed: () async {
+                                                      Navigator.of(context)
+                                                          .pop();
+                                                      await PermissionHandler
+                                                              .openDoNotDisturbSetting()
+                                                          .then((value) =>
+                                                              scheduleSilence());
+                                                    },
+                                                    child: const Text('Ok'))
+                                              ],
+                                              title: Text('Access required'),
+                                              content: Text(
+                                                  'The app requires disturb access to function properly'),
+                                            ));
+                                    // Opens the Do Not Disturb Access settings to grant the access
+
+                                  }
+
+                                  setState(() {
+                                    schedulevisible = false;
+                                    timingsvisible = false;
+                                    confirmvisible = true;
+                                  });
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -645,7 +806,7 @@ class _HomeState extends State<Home> {
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.grey[700]),
-                        child: Text('Corrections'),
+                        child: Text(AppLocalizations.of(context)!.corrections),
                         onPressed: (() async {
                           dynamic result = await Navigator.pushNamed(
                               context, '/corrections',
@@ -657,6 +818,23 @@ class _HomeState extends State<Home> {
                                 'month': month,
                                 'year': year
                               });
+                          print((result['prayers']));
+
+                          Map correctedPrayers = {};
+                          correctedPrayers['Fajr'] = result['prayers']['Fajr'];
+                          correctedPrayers['Dhuhr'] =
+                              result['prayers']['Dhuhr'];
+                          correctedPrayers['Asr'] = result['prayers']['Asr'];
+                          correctedPrayers['Maghrib'] =
+                              result['prayers']['Maghrib'];
+                          correctedPrayers['Isha'] = result['prayers']['Isha'];
+                          CreateSchedule getNewSchedule = CreateSchedule(
+                              prayers: correctedPrayers,
+                              prewait: currentValueStartMap,
+                              wait: currentValueEndMap);
+                          await getNewSchedule.createSchedule();
+                          print(
+                              'was is das ${getNewSchedule.scheduleStart['Fajr']}');
                           setState(() {
                             oldPrayers['Fajr'] = DateFormat.Hm()
                                 .format(result['prayers']['Fajr']);
@@ -668,6 +846,13 @@ class _HomeState extends State<Home> {
                                 .format(result['prayers']['Maghrib']);
                             oldPrayers['Isha'] = DateFormat.Hm()
                                 .format(result['prayers']['Isha']);
+
+                            for (String key in scheduleStart.keys) {
+                              scheduleStart[key] =
+                                  getNewSchedule.scheduleStart[key]!;
+                              scheduleEnd[key] =
+                                  getNewSchedule.scheduleEnd[key]!;
+                            }
                           });
                         }),
                       )),
@@ -683,7 +868,9 @@ class _HomeState extends State<Home> {
                             color: Colors.blue[900],
                             child: Padding(
                               padding: const EdgeInsets.all(28.0),
-                              child: Text('Silence Times Have been Scheduled.',
+                              child: Text(
+                                  AppLocalizations.of(context)!
+                                      .confirmationMessage,
                                   style: TextStyle(
                                       fontSize: 20.0,
                                       fontWeight: FontWeight.bold,
@@ -693,63 +880,84 @@ class _HomeState extends State<Home> {
                         ],
                       ),
                     )),
-                Visibility(
-                  visible: confirmvisible,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(238.0, 0.0, 0.0, 0.0),
-                    child: Column(
-                      children: [
-                        Text(
-                          '',
-                          style: TextStyle(color: Colors.white, fontSize: 18.0),
-                        ),
-                        IconButton(
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Visibility(
+                      visible: confirmvisible,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: IconButton(
                           color: Colors.blue[900],
                           onPressed: () async {
-                            GetLocationFromGPS newLocation =
-                                GetLocationFromGPS();
-                            await newLocation.getLocationFromGPS();
-                            latitude = newLocation.latitude;
-                            longitude = newLocation.longitude;
-                            var newCorrections =
-                                await CorrectionsStorage().readCorrections();
-                            print('is this correct? $day');
-                            Timings instance = Timings(
-                                lat: latitude,
-                                long: longitude,
-                                day: day,
-                                month: month,
-                                year: year,
-                                corrections: newCorrections);
-                            await instance.getTimings();
-                            prayers = instance.prayers;
-                            CreateSchedule getSchedule = CreateSchedule(
-                                prayers: prayers,
-                                prewait: _currentValueStart,
-                                wait: _currentValueEnd);
-                            await getSchedule.createSchedule();
-                            scheduleStart = getSchedule.scheduleStart;
-                            scheduleEnd = getSchedule.scheduleEnd;
-
                             setState(() {
-                              for (String key in oldPrayers.keys) {
-                                oldPrayers[key] =
-                                    DateFormat.Hm().format(prayers[key]!);
-                                gpsvisible = false;
-                                schedulevisible = true;
-                                confirmvisible = false;
-                                timingsvisible = true;
-                              }
+                              gpsvisible = false;
+                              schedulevisible = true;
+                              confirmvisible = false;
+                              timingsvisible = true;
                             });
-                            ;
                           },
-                          icon: Icon(Icons.location_on),
+                          icon: Icon(Icons.edit),
                           iconSize: 40,
-                          tooltip: 'gets device location',
+                          tooltip: 'Edit current scheduling',
                         ),
-                      ],
+                      ),
                     ),
-                  ),
+                    Visibility(
+                      visible: confirmvisible,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Column(
+                          children: [
+                            IconButton(
+                              color: Colors.blue[900],
+                              onPressed: () async {
+                                GetLocationFromGPS newLocation =
+                                    GetLocationFromGPS();
+                                await newLocation.getLocationFromGPS();
+                                latitude = newLocation.latitude;
+                                longitude = newLocation.longitude;
+                                var newCorrections = await CorrectionsStorage()
+                                    .readCorrections();
+                                print('is this correct? $day');
+                                Timings instance = Timings(
+                                    lat: latitude,
+                                    long: longitude,
+                                    day: day,
+                                    month: month,
+                                    year: year,
+                                    corrections: newCorrections);
+                                await instance.getTimings();
+                                prayers = instance.prayers;
+                                CreateSchedule getSchedule = CreateSchedule(
+                                    prayers: prayers,
+                                    prewait: currentValueStartMap,
+                                    wait: currentValueEndMap);
+                                await getSchedule.createSchedule();
+                                scheduleStart = getSchedule.scheduleStart;
+                                scheduleEnd = getSchedule.scheduleEnd;
+
+                                setState(() {
+                                  for (String key in oldPrayers.keys) {
+                                    oldPrayers[key] =
+                                        DateFormat.Hm().format(prayers[key]!);
+                                    gpsvisible = false;
+                                    schedulevisible = true;
+                                    confirmvisible = false;
+                                    timingsvisible = true;
+                                  }
+                                });
+                                ;
+                              },
+                              icon: Icon(Icons.location_on),
+                              iconSize: 40,
+                              tooltip: 'gets device location',
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ]),
         ),
@@ -931,10 +1139,11 @@ class _HomeState extends State<Home> {
           TimingsLocal(day: day, month: month, year: year);
       await localinstance.getTimings();
       prayers = localinstance.prayers;
+
       CreateSchedule getSchedule = CreateSchedule(
           prayers: prayers,
-          prewait: _currentValueStart,
-          wait: _currentValueEnd);
+          prewait: currentValueStartMap,
+          wait: currentValueEndMap);
       await getSchedule.createSchedule();
       scheduleStart = getSchedule.scheduleStart;
       scheduleEnd = getSchedule.scheduleEnd;

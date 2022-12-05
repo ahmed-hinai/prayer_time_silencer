@@ -15,6 +15,8 @@ import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:prayer_time_silencer/services/get_prayer_times_local.dart';
 import 'package:prayer_time_silencer/services/push_local_notifications.dart';
 import 'package:background_fetch/background_fetch.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 @pragma('vm:entry-point')
 void backgroundFetchHeadlessTask(HeadlessTask task) async {
@@ -33,12 +35,22 @@ void backgroundFetchHeadlessTask(HeadlessTask task) async {
 }
 
 void main() async {
-  await initializeDateFormatting();
   WidgetsFlutterBinding.ensureInitialized();
   await AndroidAlarmManager.initialize();
   await LocalNotifications().initialize();
   runApp(RestartWidget(
     child: MaterialApp(
+      
+      localizationsDelegates: [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: [
+        Locale('en', ''), // English, no country code
+        Locale('ar', ''), // Arabic , no country code
+      ],
       initialRoute: '/',
       routes: {
         '/': (context) => Loading(),

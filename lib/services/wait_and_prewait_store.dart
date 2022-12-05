@@ -1,9 +1,8 @@
-import 'package:prayer_time_silencer/services/set_device_silent.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 
-class ScheduleStorageStart {
+class WaitAndPreWaitStoreStart {
   Future<String> get _localPath async {
     final directory = await getApplicationDocumentsDirectory();
 
@@ -12,10 +11,10 @@ class ScheduleStorageStart {
 
   Future<File> get _localFile async {
     final path = await _localPath;
-    return File('$path/scheduleStart.json');
+    return File('$path/waitAndPreWaitStart.json');
   }
 
-  Future<dynamic> readSchedule() async {
+  Future<dynamic> readWaitAndPreWait() async {
     try {
       final file = await _localFile;
       final contents = await file.readAsString();
@@ -27,7 +26,7 @@ class ScheduleStorageStart {
     }
   }
 
-  Future<File> writeSchedule(response) async {
+  Future<File> writeWaitAndPreWait(response) async {
     final file = await _localFile;
 
     // Write the file
@@ -36,7 +35,7 @@ class ScheduleStorageStart {
   }
 }
 
-class ScheduleStorageEnd {
+class WaitAndPreWaitStoreEnd {
   Future<String> get _localPath async {
     final directory = await getApplicationDocumentsDirectory();
 
@@ -45,10 +44,10 @@ class ScheduleStorageEnd {
 
   Future<File> get _localFile async {
     final path = await _localPath;
-    return File('$path/scheduleEnd.json');
+    return File('$path/waitAndPreWaitEnd.json');
   }
 
-  Future<dynamic> readSchedule() async {
+  Future<dynamic> readWaitAndPreWait() async {
     try {
       final file = await _localFile;
       final contents = await file.readAsString();
@@ -60,36 +59,11 @@ class ScheduleStorageEnd {
     }
   }
 
-  Future<File> writeSchedule(response) async {
+  Future<File> writeWaitAndPreWait(response) async {
     final file = await _localFile;
 
     // Write the file
 
     return file.writeAsString(json.encode(response));
-  }
-}
-
-class CreateSchedule {
-  late var prayers;
-  late var prewait;
-  late var wait;
-  late Map<String, String> scheduleStart = {};
-  late Map<String, String> scheduleEnd = {};
-  ScheduleStorageStart scheduleStorageStart = ScheduleStorageStart();
-  ScheduleStorageEnd scheduleStorageEnd = ScheduleStorageEnd();
-
-  CreateSchedule(
-      {required this.prayers, required this.prewait, required this.wait});
-
-  Future<void> createSchedule() async {
-    for (String key in prayers.keys) {
-      scheduleStart[key] =
-          '${prayers[key].add(Duration(minutes: int.parse(prewait[key])))}';
-
-      scheduleEnd[key] =
-          '${prayers[key].add(Duration(minutes: int.parse(wait[key])))}';
-      scheduleStorageStart.writeSchedule(scheduleStart);
-      scheduleStorageEnd.writeSchedule(scheduleEnd);
-    }
   }
 }

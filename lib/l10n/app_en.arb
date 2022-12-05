@@ -1,0 +1,28 @@
+{
+
+    "language": "English",
+
+    "@language":{
+        "description": "The current language"
+    },
+    
+    "fajr": "Fajr",
+
+    "dhuhr": "Dhuhr",
+
+    "asr": "Asr",
+
+    "maghrib": "Maghrib",
+    "enterLocation":"Enter Location",
+    "isha": "Isha",
+    "enterToRetrievePrayerTimes" : "Enter to retrieve prayer times for a specific address.",
+    "settings":"Settings",
+    "aboutUs":"About Us",
+    "confirmSchedule": "Schedule Times of Silence.",
+    "confirmationMessage": "Silence times have been scheduled.",
+    "endSchedule": "End of scheduling",
+    "startSchedule": "Start of scheduling",
+    "corrections": "Corrections",
+    "correctionsMessage": "It is likely that the prayer times are slightly inaccurate, hence it is advised to consult official prayer times and add a correction."
+
+}

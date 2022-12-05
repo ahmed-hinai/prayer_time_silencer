@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class Aboutus extends StatefulWidget {
   const Aboutus({super.key});
@@ -13,7 +14,7 @@ class _AboutusState extends State<Aboutus> {
     return Scaffold(
         backgroundColor: Colors.blue[900],
         appBar: AppBar(
-            title: Text('About us'),
+            title: Text(AppLocalizations.of(context)!.aboutUs),
             centerTitle: true,
             backgroundColor: Colors.blue[900]),
         body: Column());

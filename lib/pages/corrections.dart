@@ -7,6 +7,7 @@ import 'package:prayer_time_silencer/services/corrections_store.dart';
 import 'package:prayer_time_silencer/main.dart';
 import 'package:path/path.dart' as Path;
 import 'package:prayer_time_silencer/services/silence_scheduler.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class Corrections extends StatefulWidget {
   const Corrections({super.key});
@@ -74,7 +75,7 @@ class _SettingsState extends State<Corrections> {
       child: Scaffold(
         backgroundColor: Colors.grey[900],
         appBar: AppBar(
-            title: Text('Corrections'),
+            title: Text(AppLocalizations.of(context)!.corrections),
             centerTitle: true,
             backgroundColor: Colors.blue[900]),
         body: Column(children: [
@@ -89,7 +90,7 @@ class _SettingsState extends State<Corrections> {
                     children: [
                       Flexible(
                         child: Text(
-                          'It is likely that the prayer times are slightly inaccurate, hence it is advised to consult official prayers times and add a correction.',
+                          AppLocalizations.of(context)!.correctionsMessage,
                           style: TextStyle(
                             color: Colors.grey[200],
                             fontSize: 17.0,
@@ -116,7 +117,7 @@ class _SettingsState extends State<Corrections> {
                     child: Container(
                       margin: EdgeInsets.fromLTRB(28.0, 8.0, 28.0, 8.0),
                       child: Text(
-                        'Fajr',
+                        AppLocalizations.of(context)!.fajr,
                         style: TextStyle(
                           shadows: [
                             Shadow(
@@ -201,7 +202,7 @@ class _SettingsState extends State<Corrections> {
                     child: Container(
                       margin: EdgeInsets.fromLTRB(28.0, 8.0, 28.0, 8.0),
                       child: Text(
-                        'Dhuhr',
+                        AppLocalizations.of(context)!.dhuhr,
                         style: TextStyle(
                           shadows: [
                             Shadow(
@@ -287,7 +288,7 @@ class _SettingsState extends State<Corrections> {
                     child: Container(
                       margin: EdgeInsets.fromLTRB(28.0, 8.0, 28.0, 8.0),
                       child: Text(
-                        'Asr',
+                        AppLocalizations.of(context)!.asr,
                         style: TextStyle(
                           shadows: [
                             Shadow(
@@ -372,7 +373,7 @@ class _SettingsState extends State<Corrections> {
                     child: Container(
                       margin: EdgeInsets.fromLTRB(28.0, 8.0, 28.0, 8.0),
                       child: Text(
-                        'Maghrib',
+                        AppLocalizations.of(context)!.maghrib,
                         style: TextStyle(
                           shadows: [
                             Shadow(
@@ -459,7 +460,7 @@ class _SettingsState extends State<Corrections> {
                     child: Container(
                       margin: EdgeInsets.fromLTRB(28.0, 8.0, 28.0, 8.0),
                       child: Text(
-                        'Isha',
+                        AppLocalizations.of(context)!.isha,
                         style: TextStyle(
                           shadows: [
                             Shadow(

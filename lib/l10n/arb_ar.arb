@@ -1,0 +1,25 @@
+{
+
+    "language": "العربية",
+
+    "fajr": "الفجر",
+
+    "dhuhr": "الظهر",
+
+    "asr": "العصر",
+
+    "maghrib": "المغرب",
+
+    "isha": "العشاء",
+    "enterLocation":"أدخل عنوان",
+    "enterToRetrievePrayerTimes" : "أدخل لاسترداد أوقات الصلاة لعنوان معين.",
+    "settings":"إعدادات",
+    "aboutUs":"معلومات عنا",
+    "confirmSchedule": "جدول أوقات الصمت",
+    "endSchedule": "نهاية وقت الصمت",
+    "confirmationMessage": "تمت جدولة أوقات الصمت.",
+    "startSchedule": "بداية وقت الصمت",
+    "corrections": "التصحيحات",
+    "correctionsMessage": "من المحتمل أن تكون مواقيت الصلاة غير دقيقة إلى حد ما ، لذلك يُنصح بالرجوع إلى أوقات الصلاة الرسمية وإضافة تصحيح."
+
+}
