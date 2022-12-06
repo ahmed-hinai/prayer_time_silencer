@@ -1,5 +1,7 @@
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:open_settings/open_settings.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class GetLocationFromInput {
   late String location;
@@ -53,8 +55,9 @@ class GetLocationFromGPS {
 
     if (permission == LocationPermission.deniedForever) {
       // Permissions are denied forever, handle appropriately.
+      // OpenSettings.openLocationSourceSetting();
       return Future.error(
-          'Location permissions are permanently denied, we cannot request permissions.');
+          'Location permissions are permanently denied, cannot get location data.');
     }
 
     // When we reach here, permissions are granted and we can

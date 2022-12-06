@@ -553,40 +553,45 @@ class _HomeState extends State<Home> {
                                 AppLocalizations.of(context)!.doNotDistrubBody;
                             GetLocationFromGPS newLocation =
                                 GetLocationFromGPS();
-                            await newLocation.getLocationFromGPS();
-                            latitude = newLocation.latitude;
-                            longitude = newLocation.longitude;
-                            CorrectionsStorage storedCorrections =
-                                CorrectionsStorage();
-                            var newCorrections =
-                                await storedCorrections.readCorrections();
-                            print('is this correct? $day');
-                            Timings instance = Timings(
-                                lat: latitude,
-                                long: longitude,
-                                day: day,
-                                month: month,
-                                year: year,
-                                corrections: newCorrections);
-                            await instance.getTimings();
-                            prayers = instance.prayers;
-                            CreateSchedule getSchedule = CreateSchedule(
-                                prayers: prayers,
-                                prewait: currentValueStartMap,
-                                wait: currentValueEndMap);
-                            await getSchedule.createSchedule();
-                            scheduleStart = getSchedule.scheduleStart;
-                            scheduleEnd = getSchedule.scheduleEnd;
+                            try {
+                              await newLocation.getLocationFromGPS();
+                              latitude = newLocation.latitude;
+                              longitude = newLocation.longitude;
+                              CorrectionsStorage storedCorrections =
+                                  CorrectionsStorage();
+                              var newCorrections =
+                                  await storedCorrections.readCorrections();
+                              print('is this correct? $day');
+                              Timings instance = Timings(
+                                  lat: latitude,
+                                  long: longitude,
+                                  day: day,
+                                  month: month,
+                                  year: year,
+                                  corrections: newCorrections);
+                              await instance.getTimings();
+                              prayers = instance.prayers;
+                              CreateSchedule getSchedule = CreateSchedule(
+                                  prayers: prayers,
+                                  prewait: currentValueStartMap,
+                                  wait: currentValueEndMap);
+                              await getSchedule.createSchedule();
+                              scheduleStart = getSchedule.scheduleStart;
+                              scheduleEnd = getSchedule.scheduleEnd;
 
-                            setState(() {
-                              for (String key in oldPrayers.keys) {
-                                oldPrayers[key] =
-                                    DateFormat.Hm().format(prayers[key]!);
-                                gpsvisible = false;
-                                schedulevisible = true;
-                              }
-                            });
-                            ;
+                              setState(() {
+                                for (String key in oldPrayers.keys) {
+                                  oldPrayers[key] =
+                                      DateFormat.Hm().format(prayers[key]!);
+                                  gpsvisible = false;
+                                  schedulevisible = true;
+                                }
+                              });
+                            } catch (e) {
+                              print(e);
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(SnackBar(content: Text('$e')));
+                            }
                           },
                           icon: Icon(Icons.location_on),
                           iconSize: 180,
@@ -958,40 +963,46 @@ class _HomeState extends State<Home> {
                               onPressed: () async {
                                 GetLocationFromGPS newLocation =
                                     GetLocationFromGPS();
-                                await newLocation.getLocationFromGPS();
-                                latitude = newLocation.latitude;
-                                longitude = newLocation.longitude;
-                                var newCorrections = await CorrectionsStorage()
-                                    .readCorrections();
-                                print('is this correct? $day');
-                                Timings instance = Timings(
-                                    lat: latitude,
-                                    long: longitude,
-                                    day: day,
-                                    month: month,
-                                    year: year,
-                                    corrections: newCorrections);
-                                await instance.getTimings();
-                                prayers = instance.prayers;
-                                CreateSchedule getSchedule = CreateSchedule(
-                                    prayers: prayers,
-                                    prewait: currentValueStartMap,
-                                    wait: currentValueEndMap);
-                                await getSchedule.createSchedule();
-                                scheduleStart = getSchedule.scheduleStart;
-                                scheduleEnd = getSchedule.scheduleEnd;
+                                try {
+                                  await newLocation.getLocationFromGPS();
+                                  latitude = newLocation.latitude;
+                                  longitude = newLocation.longitude;
+                                  CorrectionsStorage storedCorrections =
+                                      CorrectionsStorage();
+                                  var newCorrections =
+                                      await storedCorrections.readCorrections();
+                                  print('is this correct? $day');
+                                  Timings instance = Timings(
+                                      lat: latitude,
+                                      long: longitude,
+                                      day: day,
+                                      month: month,
+                                      year: year,
+                                      corrections: newCorrections);
+                                  await instance.getTimings();
+                                  prayers = instance.prayers;
+                                  CreateSchedule getSchedule = CreateSchedule(
+                                      prayers: prayers,
+                                      prewait: currentValueStartMap,
+                                      wait: currentValueEndMap);
+                                  await getSchedule.createSchedule();
+                                  scheduleStart = getSchedule.scheduleStart;
+                                  scheduleEnd = getSchedule.scheduleEnd;
 
-                                setState(() {
-                                  for (String key in oldPrayers.keys) {
-                                    oldPrayers[key] =
-                                        DateFormat.Hm().format(prayers[key]!);
-                                    gpsvisible = false;
-                                    schedulevisible = true;
-                                    confirmvisible = false;
-                                    timingsvisible = true;
-                                  }
-                                });
-                                ;
+                                  setState(() {
+                                    for (String key in oldPrayers.keys) {
+                                      oldPrayers[key] =
+                                          DateFormat.Hm().format(prayers[key]!);
+                                      gpsvisible = false;
+                                      schedulevisible = true;
+                                    }
+                                  });
+                                } catch (e) {
+                                  print(e);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('$e')));
+                                  ;
+                                }
                               },
                               icon: Icon(Icons.location_on),
                               iconSize: 40,
