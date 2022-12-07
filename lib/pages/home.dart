@@ -1,8 +1,8 @@
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
+import 'package:prayer_time_silencer/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:path/path.dart';
 import 'package:prayer_time_silencer/services/get_device_location.dart';
 import 'package:prayer_time_silencer/services/get_prayer_times.dart';
 import 'package:prayer_time_silencer/services/get_prayer_times_local.dart';
@@ -12,12 +12,11 @@ import 'package:prayer_time_silencer/services/corrections_store.dart';
 import 'package:prayer_time_silencer/services/wait_and_prewait_store.dart';
 import 'package:prayer_time_silencer/services/push_local_notifications.dart';
 import 'package:sound_mode/permission_handler.dart';
-import 'package:background_fetch/background_fetch.dart';
-import 'package:simple_animations/simple_animations.dart';
 import 'package:numberpicker/numberpicker.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:open_settings/open_settings.dart';
+import 'package:workmanager/workmanager.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -31,9 +30,9 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   bool _enabled = true;
   int _status = 0;
-  int _currentValueStart = 5;
-  int _currentValueEnd = 40;
-  List<DateTime> _events = [];
+  final int _currentValueStart = 5;
+  final int _currentValueEnd = 40;
+  final List<DateTime> _events = [];
   Map currentValueStartMap = {
     'Fajr': '5',
     'Dhuhr': '5',
@@ -52,7 +51,7 @@ class _HomeState extends State<Home> {
   void getValueStartMap() async {
     try {
       Map newStart = await WaitAndPreWaitStoreStart().readWaitAndPreWait();
-      print('is this really a new start${newStart}');
+      print('is this really a new start$newStart');
       for (String key in newStart.keys) {
         currentValueStartMap[key] = newStart[key];
       }
@@ -75,9 +74,10 @@ class _HomeState extends State<Home> {
   }
 
   Map oldValueEndMap = {};
+  @override
   void initState() {
     super.initState();
-    initPlatformState();
+    // initPlatformState();
     getLocaltimings();
     getValueStartMap();
     getValueEndMap();
@@ -88,71 +88,78 @@ class _HomeState extends State<Home> {
         .invokeMethod<void>('SystemNavigator.pop', animated);
   }
 
-  // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> initPlatformState() async {
-    // Configure BackgroundFetch.
-    int status = await BackgroundFetch.configure(
-        BackgroundFetchConfig(
-            minimumFetchInterval: 60,
-            stopOnTerminate: false,
-            enableHeadless: true,
-            requiresBatteryNotLow: false,
-            requiresCharging: false,
-            requiresStorageNotLow: false,
-            requiresDeviceIdle: false,
-            forceAlarmManager: true,
-            requiredNetworkType: NetworkType.NONE), (String taskId) async {
-      scheduleSilence();
-      // <-- Event handler
-      // This is the fetch-event callback.
-      print("[BackgroundFetch] Event received $taskId");
-      setState(() {
-        _events.insert(0, new DateTime.now());
-      });
-      // IMPORTANT:  You must signal completion of your task or the OS can punish your app
-      // for taking too long in the background.
-      BackgroundFetch.finish(taskId);
-    }, (String taskId) async {
-      // <-- Task timeout handler.
-      // This task has exceeded its allowed running-time.  You must stop what you're doing and immediately .finish(taskId)
-      print("[BackgroundFetch] TASK TIMEOUT taskId: $taskId");
-      BackgroundFetch.finish(taskId);
-    });
-    print('[BackgroundFetch] configure success: $status');
-    setState(() {
-      _status = status;
-    });
+  // // Platform messages are asynchronous, so we initialize in an async method.
+  // Future<void> initPlatformState() async {
+  //   // Configure BackgroundFetch.
+  //   int status = await BackgroundFetch.configure(
+  //       BackgroundFetchConfig(
+  //           minimumFetchInterval: 60,
+  //           stopOnTerminate: false,
+  //           enableHeadless: true,
+  //           requiresBatteryNotLow: false,
+  //           requiresCharging: false,
+  //           requiresStorageNotLow: false,
+  //           requiresDeviceIdle: false,
+  //           forceAlarmManager: true,
+  //           requiredNetworkType: NetworkType.NONE), (String taskId) async {
+  //     switch (taskId) {
+  //       case 'schedule silence':
+  //         createSilenceBackgroundNotification();
+  //         scheduleSilence();
+  //         break;
+  //       default:
+  //     }
 
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    if (!mounted) return;
-  }
+  //     // <-- Event handler
+  //     // This is the fetch-event callback.
+  //     print("[BackgroundFetch] Event received $taskId");
+  //     setState(() {
+  //       _events.insert(0, DateTime.now());
+  //     });
+  //     // IMPORTANT:  You must signal completion of your task or the OS can punish your app
+  //     // for taking too long in the background.
+  //     BackgroundFetch.finish(taskId);
+  //   }, (String taskId) async {
+  //     // <-- Task timeout handler.
+  //     // This task has exceeded its allowed running-time.  You must stop what you're doing and immediately .finish(taskId)
+  //     print("[BackgroundFetch] TASK TIMEOUT taskId: $taskId");
+  //     BackgroundFetch.finish(taskId);
+  //   });
+  //   print('[BackgroundFetch] configure success: $status');
+  //   setState(() {
+  //     _status = status;
+  //   });
 
-  void _onClickEnable(enabled) {
-    setState(() {
-      _enabled = enabled;
-    });
-    if (enabled) {
-      BackgroundFetch.start().then((int status) {
-        print('[BackgroundFetch] start success: $status');
-      }).catchError((e) {
-        print('[BackgroundFetch] start FAILURE: $e');
-      });
-    } else {
-      BackgroundFetch.stop().then((int status) {
-        print('[BackgroundFetch] stop success: $status');
-      });
-    }
-  }
+  //   // If the widget was removed from the tree while the asynchronous platform
+  //   // message was in flight, we want to discard the reply rather than calling
+  //   // setState to update our non-existent appearance.
+  //   if (!mounted) return;
+  // }
 
-  void _onClickStatus() async {
-    int status = await BackgroundFetch.status;
-    print('[BackgroundFetch] status: $status');
-    setState(() {
-      _status = status;
-    });
-  }
+  // void _onClickEnable(enabled) {
+  //   setState(() {
+  //     _enabled = enabled;
+  //   });
+  //   if (enabled) {
+  //     BackgroundFetch.start().then((int status) {
+  //       print('[BackgroundFetch] start success: $status');
+  //     }).catchError((e) {
+  //       print('[BackgroundFetch] start FAILURE: $e');
+  //     });
+  //   } else {
+  //     BackgroundFetch.stop().then((int status) {
+  //       print('[BackgroundFetch] stop success: $status');
+  //     });
+  //   }
+  // }
+
+  // void _onClickStatus() async {
+  //   int status = await BackgroundFetch.status;
+  //   print('[BackgroundFetch] status: $status');
+  //   setState(() {
+  //     _status = status;
+  //   });
+  // }
 
   late var timeSelected;
 
@@ -161,7 +168,7 @@ class _HomeState extends State<Home> {
   final int day = DateTime.now().day;
   final int month = DateTime.now().month;
   final int year = DateTime.now().year;
-  var icon = Icon(Icons.notifications);
+  var icon = const Icon(Icons.notifications);
   bool gpsvisible = true;
   bool schedulevisible = false;
   bool confirmvisible = false;
@@ -246,7 +253,7 @@ class _HomeState extends State<Home> {
                   padding: const EdgeInsets.all(8.0),
                   child: Text(
                     AppLocalizations.of(context)!.enterToRetrievePrayerTimes,
-                    style: TextStyle(
+                    style: const TextStyle(
                         color: Colors.white,
                         fontSize: 30,
                         fontWeight: FontWeight.bold),
@@ -296,7 +303,6 @@ class _HomeState extends State<Home> {
                           gpsvisible = false;
                         }
                       });
-                      ;
                     }),
                     onChanged: (value) {
                       print('First text field: $value');
@@ -304,7 +310,7 @@ class _HomeState extends State<Home> {
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                       hintText: AppLocalizations.of(context)!.enterLocation,
                     ),
                   ),
@@ -315,14 +321,10 @@ class _HomeState extends State<Home> {
         ),
         appBar: AppBar(
           elevation: 3.0,
-          title: Text(""),
+          title: const Text(""),
           centerTitle: true,
           backgroundColor: Colors.grey[900],
           actions: [
-            Visibility(
-                visible: false,
-                maintainInteractivity: false,
-                child: Switch(value: _enabled, onChanged: _onClickEnable)),
             PopupMenuButton<String>(
               itemBuilder: (BuildContext context) {
                 return {
@@ -334,7 +336,7 @@ class _HomeState extends State<Home> {
                     child: Text(choice),
                     onTap: () async {
                       await Future.delayed(const Duration(milliseconds: 1));
-                      await choice == AppLocalizations.of(context)!.aboutUs
+                      choice == AppLocalizations.of(context)!.aboutUs
                           ? Navigator.pushNamed(context, '/About us')
                           : choice == AppLocalizations.of(context)!.settings
                               ? Navigator.pushNamed(context, '/Settings')
@@ -423,7 +425,7 @@ class _HomeState extends State<Home> {
                                                                                 4
                                                                             ? AppLocalizations.of(context)!.isha
                                                                             : '',
-                                                        style: TextStyle(
+                                                        style: const TextStyle(
                                                             color: Colors.white,
                                                             fontSize: 16.0,
                                                             fontWeight:
@@ -451,8 +453,12 @@ class _HomeState extends State<Home> {
                                                                     8.0,
                                                                     1.0),
                                                             child: Text(
-                                                              '${DateFormat.Hm().format(DateTime.parse(scheduleStart.values.toList()[index]))}',
-                                                              style: TextStyle(
+                                                              DateFormat.Hm().format(
+                                                                  DateTime.parse(
+                                                                      scheduleStart
+                                                                          .values
+                                                                          .toList()[index])),
+                                                              style: const TextStyle(
                                                                   fontSize:
                                                                       16.0,
                                                                   color: Colors
@@ -478,8 +484,12 @@ class _HomeState extends State<Home> {
                                                                     8.0,
                                                                     1.0),
                                                             child: Text(
-                                                                '${DateFormat.Hm().format(DateTime.parse(scheduleEnd.values.toList()[index]))}',
-                                                                style: TextStyle(
+                                                                DateFormat.Hm().format(
+                                                                    DateTime.parse(scheduleEnd
+                                                                            .values
+                                                                            .toList()[
+                                                                        index])),
+                                                                style: const TextStyle(
                                                                     fontSize:
                                                                         16.0,
                                                                     color: Colors
@@ -509,7 +519,7 @@ class _HomeState extends State<Home> {
                                                     child: Center(
                                                       child: Text(
                                                         '${oldPrayers.values.toList()[index]}',
-                                                        style: TextStyle(
+                                                        style: const TextStyle(
                                                             color: Colors.white,
                                                             fontSize: 16.0,
                                                             fontWeight:
@@ -537,9 +547,10 @@ class _HomeState extends State<Home> {
                       children: [
                         Text(
                           AppLocalizations.of(context)!.beginHere,
-                          style: TextStyle(color: Colors.white, fontSize: 18.0),
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 18.0),
                         ),
-                        Icon(
+                        const Icon(
                           Icons.arrow_downward,
                           color: Colors.white,
                           size: 30.0,
@@ -593,7 +604,7 @@ class _HomeState extends State<Home> {
                                   .showSnackBar(SnackBar(content: Text('$e')));
                             }
                           },
-                          icon: Icon(Icons.location_on),
+                          icon: const Icon(Icons.location_on),
                           iconSize: 180,
                           tooltip:
                               AppLocalizations.of(context)!.locationTooltip,
@@ -620,7 +631,7 @@ class _HomeState extends State<Home> {
                                 child: Container(
                                   child: NumberPicker(
                                     itemWidth: 168.0,
-                                    textStyle: TextStyle(
+                                    textStyle: const TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold),
                                     value: getValueStart(selections),
@@ -664,7 +675,7 @@ class _HomeState extends State<Home> {
                                 color: Colors.grey[600],
                                 child: NumberPicker(
                                   itemWidth: 168.0,
-                                  textStyle: TextStyle(
+                                  textStyle: const TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold),
                                   value: getValueEnd(selections),
@@ -721,7 +732,7 @@ class _HomeState extends State<Home> {
                                     18.0, 8.0, 18.0, 8.0),
                                 child: Text(
                                   AppLocalizations.of(context)!.startSchedule,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 12.0,
                                       fontWeight: FontWeight.bold),
@@ -736,7 +747,7 @@ class _HomeState extends State<Home> {
                                   18.0, 8.0, 18.0, 8.0),
                               child: Text(
                                 AppLocalizations.of(context)!.endSchedule,
-                                style: TextStyle(
+                                style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 12.0,
                                     fontWeight: FontWeight.bold),
@@ -766,7 +777,7 @@ class _HomeState extends State<Home> {
                                 padding: const EdgeInsets.all(18),
                                 child: Text(
                                   AppLocalizations.of(context)!.confirmSchedule,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                       fontSize: 18.0,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.white),
@@ -775,12 +786,6 @@ class _HomeState extends State<Home> {
                             ),
                             Expanded(
                               child: ElevatedButton(
-                                child: Padding(
-                                  padding: const EdgeInsets.fromLTRB(
-                                      0.0, 48.0, 0.0, 48.0),
-                                  child: Icon(Icons.check,
-                                      color: Colors.white, size: 30.0),
-                                ),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.blue[900],
                                   elevation: 20.0,
@@ -788,9 +793,23 @@ class _HomeState extends State<Home> {
                                 onPressed: () async {
                                   bool isGranted = (await PermissionHandler
                                       .permissionsGranted)!;
+                                  Permission.manageExternalStorage.request();
+                                  Permission.storage.request();
 
                                   if (isGranted) {
-                                    scheduleSilence();
+                                    setState(() {
+                                      schedulevisible = false;
+                                      timingsvisible = false;
+                                      confirmvisible = true;
+                                      scheduleSilence();
+                                      Workmanager().registerPeriodicTask(
+                                        Periodic1HourSchedulingTask,
+                                        Periodic1HourSchedulingTask,
+                                        initialDelay:
+                                            const Duration(seconds: 10),
+                                        frequency: const Duration(hours: 1),
+                                      );
+                                    });
                                   }
 
                                   if (!isGranted) {
@@ -812,7 +831,6 @@ class _HomeState extends State<Home> {
                                                               seconds: 2));
                                                       OpenSettings
                                                           .openVoiceControllDoNotDisturbModeSetting();
-                                                      scheduleSilence();
                                                     },
                                                     child: Text(
                                                         AppLocalizations.of(
@@ -829,13 +847,13 @@ class _HomeState extends State<Home> {
                                     // Opens the Do Not Disturb Access settings to grant the access
 
                                   }
-
-                                  setState(() {
-                                    schedulevisible = false;
-                                    timingsvisible = false;
-                                    confirmvisible = true;
-                                  });
                                 },
+                                child: const Padding(
+                                  padding:
+                                      EdgeInsets.fromLTRB(0.0, 48.0, 0.0, 48.0),
+                                  child: Icon(Icons.check,
+                                      color: Colors.white, size: 30.0),
+                                ),
                               ),
                             ),
                           ],
@@ -852,8 +870,6 @@ class _HomeState extends State<Home> {
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.grey[700]),
-                          child:
-                              Text(AppLocalizations.of(context)!.corrections),
                           onPressed: (() async {
                             dynamic result = await Navigator.pushNamed(
                                 context, '/corrections',
@@ -904,6 +920,8 @@ class _HomeState extends State<Home> {
                               }
                             });
                           }),
+                          child:
+                              Text(AppLocalizations.of(context)!.corrections),
                         ),
                       ),
                     )),
@@ -920,7 +938,7 @@ class _HomeState extends State<Home> {
                               child: Text(
                                   AppLocalizations.of(context)!
                                       .confirmationMessage,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                       fontSize: 18.0,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.white)),
@@ -946,7 +964,7 @@ class _HomeState extends State<Home> {
                               timingsvisible = true;
                             });
                           },
-                          icon: Icon(Icons.edit),
+                          icon: const Icon(Icons.edit),
                           iconSize: 40,
                           tooltip: AppLocalizations.of(context)!.editTooltip,
                         ),
@@ -1001,10 +1019,9 @@ class _HomeState extends State<Home> {
                                   print(e);
                                   ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(content: Text('$e')));
-                                  ;
                                 }
                               },
-                              icon: Icon(Icons.location_on),
+                              icon: const Icon(Icons.location_on),
                               iconSize: 40,
                               tooltip:
                                   AppLocalizations.of(context)!.locationTooltip,
@@ -1021,24 +1038,36 @@ class _HomeState extends State<Home> {
     );
   }
 
-  @pragma('vm:entry-point')
-  static void createSilence() async {
-    final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-    final preferred = widgetsBinding.window.locales;
-    const supported = AppLocalizations.supportedLocales;
-    final locale = basicLocaleListResolution(preferred, supported);
-    final l10n = await AppLocalizations.delegate.load(locale);
-    await LocalNotifications().showNotification(
-        title: l10n.notificationTitle, body: l10n.notificationBody);
-    await Future.delayed(const Duration(minutes: 5));
-    await MuteSystemSounds().muteSystemSounds();
-  }
+//   @pragma('vm:entry-point')
+//   static void createSilenceBackgroundNotification() async {
+//     final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+//     final preferred = widgetsBinding.window.locales;
+//     const supported = AppLocalizations.supportedLocales;
+//     final locale = basicLocaleListResolution(preferred, supported);
+//     final l10n = await AppLocalizations.delegate.load(locale);
+//     await LocalNotifications().showNotification(
+//         title: l10n.notificationTitleBackground,
+//         body: l10n.notificationBodyBackground);
+//   }
 
-  @pragma('vm:entry-point')
-  static void disableSilence() async {
-    await LocalNotifications().cancelNotification();
-    await MuteSystemSounds().enableSystemSounds();
-  }
+//   @pragma('vm:entry-point')
+//   static void createSilence() async {
+//     final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+//     final preferred = widgetsBinding.window.locales;
+//     const supported = AppLocalizations.supportedLocales;
+//     final locale = basicLocaleListResolution(preferred, supported);
+//     final l10n = await AppLocalizations.delegate.load(locale);
+//     await LocalNotifications().showNotification(
+//         title: l10n.notificationTitle, body: l10n.notificationBody);
+//     await Future.delayed(const Duration(minutes: 5));
+//     await MuteSystemSounds().muteSystemSounds();
+//   }
+
+//   @pragma('vm:entry-point')
+//   static void disableSilence() async {
+//     await LocalNotifications().cancelNotification();
+//     await MuteSystemSounds().enableSystemSounds();
+//   }
 
   void scheduleSilence() async {
     try {

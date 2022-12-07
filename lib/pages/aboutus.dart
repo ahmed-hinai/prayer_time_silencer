@@ -30,7 +30,7 @@ class _AboutusState extends State<Aboutus> {
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         Text(
-                          "Hello! thank you for using my app. If you have any queries please feel free to contact me here:",
+                          AppLocalizations.of(context)!.aboutUsHello1,
                           style: TextStyle(
                               color: Colors.grey[100], fontSize: 18.0),
                         ),
@@ -52,7 +52,7 @@ class _AboutusState extends State<Aboutus> {
                               )),
                         ),
                         Text(
-                          "You can also leave a review on the Google Play store citing any issues you may have or features you would like implimented.",
+                          AppLocalizations.of(context)!.aboutUsHello2,
                           style: TextStyle(
                               color: Colors.grey[100], fontSize: 18.0),
                         ),
@@ -72,12 +72,15 @@ class _AboutusState extends State<Aboutus> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        Image(
-                          image: AssetImage('assets/aladhanapi.png'),
-                          width: MediaQuery.of(context).size.width / 2.3,
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Image(
+                            image: const AssetImage('assets/aladhanapi.png'),
+                            width: MediaQuery.of(context).size.width / 3,
+                          ),
                         ),
                         Text(
-                          "This application uses the open source API provided by the good people at aladhan.com. The API serves as a main part of the functionality of this app.",
+                          AppLocalizations.of(context)!.aboutUsApiTalk,
                           style: TextStyle(
                               color: Colors.grey[100], fontSize: 18.0),
                         ),
@@ -97,13 +100,15 @@ class _AboutusState extends State<Aboutus> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        Text(
-                          "",
-                          style: TextStyle(
-                              color: Colors.grey[100], fontSize: 18.0),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Image(
+                            image: const AssetImage('assets/flutter_icon.png'),
+                            width: MediaQuery.of(context).size.width / 6,
+                          ),
                         ),
                         Text(
-                          "",
+                          AppLocalizations.of(context)!.aboutUsFlutterTalk,
                           style: TextStyle(
                               color: Colors.grey[100], fontSize: 18.0),
                         ),

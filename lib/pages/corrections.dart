@@ -35,6 +35,7 @@ class _SettingsState extends State<Corrections> {
     }
   }
 
+  @override
   void initState() {
     super.initState();
     defineValues();
@@ -78,6 +79,8 @@ class _SettingsState extends State<Corrections> {
           Padding(
             padding: const EdgeInsets.all(18.0),
             child: Card(
+              shadowColor: Colors.blue[800],
+              color: Colors.blue[900],
               child: Center(
                 child: Padding(
                   padding: const EdgeInsets.all(18.0),
@@ -97,8 +100,6 @@ class _SettingsState extends State<Corrections> {
                   ),
                 ),
               ),
-              shadowColor: Colors.blue[800],
-              color: Colors.blue[900],
             ),
           ),
           Expanded(
@@ -111,11 +112,11 @@ class _SettingsState extends State<Corrections> {
                     shadowColor: Colors.blue[800],
                     color: Colors.blue[900],
                     child: Container(
-                      margin: EdgeInsets.fromLTRB(28.0, 8.0, 28.0, 8.0),
+                      margin: const EdgeInsets.fromLTRB(28.0, 8.0, 28.0, 8.0),
                       child: Text(
                         AppLocalizations.of(context)!.fajr,
                         style: TextStyle(
-                          shadows: [
+                          shadows: const [
                             Shadow(
                               color: Colors.white,
                               blurRadius: 2.0,
@@ -144,8 +145,8 @@ class _SettingsState extends State<Corrections> {
                                   padding: const EdgeInsets.all(8.0),
                                   child: Center(
                                     child: Text(
-                                      '${DateFormat.Hm().format(prayers['Fajr'])}',
-                                      style: TextStyle(
+                                      DateFormat.Hm().format(prayers['Fajr']),
+                                      style: const TextStyle(
                                           color: Colors.white,
                                           fontSize: 16.0,
                                           fontWeight: FontWeight.bold),
@@ -157,7 +158,7 @@ class _SettingsState extends State<Corrections> {
                             Card(
                               child: NumberPicker(
                                   itemHeight: 38.0,
-                                  selectedTextStyle: TextStyle(
+                                  selectedTextStyle: const TextStyle(
                                       fontSize: 18.0, color: Colors.blueAccent),
                                   textStyle: TextStyle(
                                       fontSize: 12.0, color: Colors.grey[800]),
@@ -196,11 +197,11 @@ class _SettingsState extends State<Corrections> {
                     shadowColor: Colors.blue[800],
                     color: Colors.blue[900],
                     child: Container(
-                      margin: EdgeInsets.fromLTRB(28.0, 8.0, 28.0, 8.0),
+                      margin: const EdgeInsets.fromLTRB(28.0, 8.0, 28.0, 8.0),
                       child: Text(
                         AppLocalizations.of(context)!.dhuhr,
                         style: TextStyle(
-                          shadows: [
+                          shadows: const [
                             Shadow(
                               color: Colors.white,
                               blurRadius: 2.0,
@@ -229,8 +230,8 @@ class _SettingsState extends State<Corrections> {
                                   padding: const EdgeInsets.all(8.0),
                                   child: Center(
                                     child: Text(
-                                      '${DateFormat.Hm().format(prayers['Dhuhr'])}',
-                                      style: TextStyle(
+                                      DateFormat.Hm().format(prayers['Dhuhr']),
+                                      style: const TextStyle(
                                           color: Colors.white,
                                           fontSize: 16.0,
                                           fontWeight: FontWeight.bold),
@@ -242,7 +243,7 @@ class _SettingsState extends State<Corrections> {
                             Card(
                               child: NumberPicker(
                                   itemHeight: 38.0,
-                                  selectedTextStyle: TextStyle(
+                                  selectedTextStyle: const TextStyle(
                                       fontSize: 18.0, color: Colors.blueAccent),
                                   textStyle: TextStyle(
                                       fontSize: 12.0, color: Colors.grey[800]),
@@ -282,11 +283,11 @@ class _SettingsState extends State<Corrections> {
                     shadowColor: Colors.blue[800],
                     color: Colors.blue[900],
                     child: Container(
-                      margin: EdgeInsets.fromLTRB(28.0, 8.0, 28.0, 8.0),
+                      margin: const EdgeInsets.fromLTRB(28.0, 8.0, 28.0, 8.0),
                       child: Text(
                         AppLocalizations.of(context)!.asr,
                         style: TextStyle(
-                          shadows: [
+                          shadows: const [
                             Shadow(
                               color: Colors.white,
                               blurRadius: 2.0,
@@ -315,8 +316,8 @@ class _SettingsState extends State<Corrections> {
                                   padding: const EdgeInsets.all(8.0),
                                   child: Center(
                                     child: Text(
-                                      '${DateFormat.Hm().format(prayers['Asr'])}',
-                                      style: TextStyle(
+                                      DateFormat.Hm().format(prayers['Asr']),
+                                      style: const TextStyle(
                                           color: Colors.white,
                                           fontSize: 16.0,
                                           fontWeight: FontWeight.bold),
@@ -328,7 +329,7 @@ class _SettingsState extends State<Corrections> {
                             Card(
                               child: NumberPicker(
                                   itemHeight: 38.0,
-                                  selectedTextStyle: TextStyle(
+                                  selectedTextStyle: const TextStyle(
                                       fontSize: 18.0, color: Colors.blueAccent),
                                   textStyle: TextStyle(
                                       fontSize: 12.0, color: Colors.grey[800]),
@@ -367,11 +368,11 @@ class _SettingsState extends State<Corrections> {
                     shadowColor: Colors.blue[800],
                     color: Colors.blue[900],
                     child: Container(
-                      margin: EdgeInsets.fromLTRB(28.0, 8.0, 28.0, 8.0),
+                      margin: const EdgeInsets.fromLTRB(28.0, 8.0, 28.0, 8.0),
                       child: Text(
                         AppLocalizations.of(context)!.maghrib,
                         style: TextStyle(
-                          shadows: [
+                          shadows: const [
                             Shadow(
                               color: Colors.white,
                               blurRadius: 2.0,
@@ -400,8 +401,8 @@ class _SettingsState extends State<Corrections> {
                                   padding: const EdgeInsets.all(8.0),
                                   child: Center(
                                     child: Text(
-                                      '${DateFormat.Hm().format(prayers['Maghrib'])}',
-                                      style: TextStyle(
+                                      DateFormat.Hm().format(prayers['Maghrib']),
+                                      style: const TextStyle(
                                           color: Colors.white,
                                           fontSize: 16.0,
                                           fontWeight: FontWeight.bold),
@@ -413,7 +414,7 @@ class _SettingsState extends State<Corrections> {
                             Card(
                               child: NumberPicker(
                                   itemHeight: 38.0,
-                                  selectedTextStyle: TextStyle(
+                                  selectedTextStyle: const TextStyle(
                                       fontSize: 18.0, color: Colors.blueAccent),
                                   textStyle: TextStyle(
                                       fontSize: 12.0, color: Colors.grey[800]),
@@ -454,11 +455,11 @@ class _SettingsState extends State<Corrections> {
                     shadowColor: Colors.blue[800],
                     color: Colors.blue[900],
                     child: Container(
-                      margin: EdgeInsets.fromLTRB(28.0, 8.0, 28.0, 8.0),
+                      margin: const EdgeInsets.fromLTRB(28.0, 8.0, 28.0, 8.0),
                       child: Text(
                         AppLocalizations.of(context)!.isha,
                         style: TextStyle(
-                          shadows: [
+                          shadows: const [
                             Shadow(
                               color: Colors.white,
                               blurRadius: 2.0,
@@ -487,8 +488,8 @@ class _SettingsState extends State<Corrections> {
                                   padding: const EdgeInsets.all(8.0),
                                   child: Center(
                                     child: Text(
-                                      '${DateFormat.Hm().format(prayers['Isha'])}',
-                                      style: TextStyle(
+                                      DateFormat.Hm().format(prayers['Isha']),
+                                      style: const TextStyle(
                                           color: Colors.white,
                                           fontSize: 16.0,
                                           fontWeight: FontWeight.bold),
@@ -500,7 +501,7 @@ class _SettingsState extends State<Corrections> {
                             Card(
                               child: NumberPicker(
                                   itemHeight: 38.0,
-                                  selectedTextStyle: TextStyle(
+                                  selectedTextStyle: const TextStyle(
                                       fontSize: 18.0, color: Colors.blueAccent),
                                   textStyle: TextStyle(
                                       fontSize: 12.0, color: Colors.grey[800]),

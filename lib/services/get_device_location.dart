@@ -1,7 +1,5 @@
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:open_settings/open_settings.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class GetLocationFromInput {
   late String location;

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:numberpicker/numberpicker.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class Settings extends StatefulWidget {
@@ -22,7 +21,7 @@ class _SettingsState extends State<Settings> {
           children: [
             ListTile(
               shape: RoundedRectangleBorder(
-                  side: BorderSide(color: Colors.black, width: .2),
+                  side: const BorderSide(color: Colors.black, width: .2),
                   borderRadius: BorderRadius.circular(0)),
               tileColor: Colors.grey[800],
               onTap: () {
@@ -32,7 +31,7 @@ class _SettingsState extends State<Settings> {
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
                   AppLocalizations.of(context)!.language,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 20.0,
                   ),

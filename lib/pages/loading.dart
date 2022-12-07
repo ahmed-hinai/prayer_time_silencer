@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:prayer_time_silencer/services/get_prayer_times.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class Loading extends StatefulWidget {
@@ -13,7 +10,7 @@ class Loading extends StatefulWidget {
 
 class _LoadingState extends State<Loading> {
   void setupTimings() async {
-    await Future.delayed(Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 2));
     Navigator.pushReplacementNamed(context, '/home');
   }
 
@@ -28,7 +25,7 @@ class _LoadingState extends State<Loading> {
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: Colors.blue[900],
-        body: Center(
+        body: const Center(
             child: SpinKitCubeGrid(
           color: Colors.white,
           size: 70.0,

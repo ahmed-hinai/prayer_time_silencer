@@ -31,8 +31,15 @@
     "doNotDistrubBody": "The app requires the Do Not Disturb access to function.",
     "notificationTitle":"Prayer Time Silencer",
     "notificationBody": "Your device will be silenced in 5 minutes",
+    "notificationTitleBackground":"Prayer Time Silencer",
+    "notificationBodyBackground": "Scheduling your next times of silence",
     "ok": "Ok",
     "locationTooltip": "Request current location.",
     "editTooltip": "Edit current scheduling.",
-    "beginHere": "Begin Here"
+    "beginHere": "Begin Here",
+    "aboutUsHello1": "Hello! thank you for using my app. If you have any queries please feel free to contact me here:",
+    "aboutUsHello2": "You can also leave a review on the Google Play store citing any issues you may have or features you would like implemented.",
+    "aboutUsApiTalk":"This application uses the open source API provided by the good people at aladhan.com. The API serves as a main part of the functionality of this app.",
+    "aboutUsFlutterTalk": "This app was developed using flutter, an open-source UI software development kit. Many functions of the app mainly or partially use packages provided by the flutter community."
+
 }

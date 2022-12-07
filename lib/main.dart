@@ -1,39 +1,68 @@
-import 'dart:convert';
-import 'dart:isolate';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:intl/intl.dart';
-import 'package:intl/date_symbol_data_local.dart';
 import 'package:prayer_time_silencer/pages/home.dart';
 import 'package:prayer_time_silencer/pages/loading.dart';
 import 'package:prayer_time_silencer/pages/settings.dart';
 import 'package:prayer_time_silencer/pages/aboutus.dart';
 import 'package:prayer_time_silencer/pages/corrections.dart';
-import 'package:prayer_time_silencer/services/set_device_silent.dart';
-import 'package:prayer_time_silencer/services/silence_scheduler.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
-import 'package:prayer_time_silencer/services/get_prayer_times_local.dart';
 import 'package:prayer_time_silencer/services/push_local_notifications.dart';
 import 'package:background_fetch/background_fetch.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:prayer_time_silencer/pages/languagesetting.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:prayer_time_silencer/services/set_device_silent.dart';
+import 'package:prayer_time_silencer/services/silence_scheduler.dart';
+import 'package:workmanager/workmanager.dart';
 
 @pragma('vm:entry-point')
-void backgroundFetchHeadlessTask(HeadlessTask task) async {
-  String taskId = task.taskId;
-  bool isTimeout = task.timeout;
-  if (isTimeout) {
-    // This task has exceeded its allowed running-time.
-    // You must stop what you're doing and immediately .finish(taskId)
-    print("[BackgroundFetch] Headless task timed-out: $taskId");
-    BackgroundFetch.finish(taskId);
-    return;
-  }
-  print('[BackgroundFetch] Headless event received.');
-  // Do your work here...
-  BackgroundFetch.finish(taskId);
+void createSilenceBackgroundNotification() async {
+  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  final preferred = widgetsBinding.window.locales;
+  const supported = AppLocalizations.supportedLocales;
+  final locale = basicLocaleListResolution(preferred, supported);
+  final l10n = await AppLocalizations.delegate.load(locale);
+  await ShortLocalNotifications().showBackgroundNotification(
+      title: l10n.notificationTitleBackground,
+      body: l10n.notificationBodyBackground);
+}
+
+@pragma('vm:entry-point')
+void createSilence() async {
+  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  final preferred = widgetsBinding.window.locales;
+  const supported = AppLocalizations.supportedLocales;
+  final locale = basicLocaleListResolution(preferred, supported);
+  final l10n = await AppLocalizations.delegate.load(locale);
+  await LocalNotifications().showNotification(
+      title: l10n.notificationTitle, body: l10n.notificationBody);
+  await Future.delayed(const Duration(minutes: 5));
+  await MuteSystemSounds().muteSystemSounds();
+}
+
+@pragma('vm:entry-point')
+void disableSilence() async {
+  await LocalNotifications().cancelNotification();
+  await MuteSystemSounds().enableSystemSounds();
+}
+
+const Periodic1HourSchedulingTask =
+    "com.example.prayer_time_silencer.Periodic1HourSchedulingTask";
+
+@pragma(
+    'vm:entry-point') // Mandatory if the App is obfuscated or using Flutter 3.1+
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    switch (task) {
+      case Periodic1HourSchedulingTask:
+        createSilenceBackgroundNotification();
+        MyAppState().scheduleSilence();
+        print("$Periodic1HourSchedulingTask was executed");
+        break;
+    }
+
+    return Future.value(true);
+  });
 }
 
 class MyApp extends StatefulWidget {
@@ -48,9 +77,38 @@ class MyApp extends StatefulWidget {
 
 class MyAppState extends State<MyApp> {
   Locale? _locale;
+
+  final int day = DateTime.now().day;
+  final int month = DateTime.now().month;
+  final int year = DateTime.now().year;
+  late var data;
+  Map<String, DateTime> prayers = {};
+  Map<String, String> scheduleStart = {};
+  Map<String, String> scheduleEnd = {};
+  bool _enabled = true;
+  int _status = 0;
+  final List<DateTime> _events = [];
+
+  void getLocalStoredSchedule() async {
+    try {
+      Map imjustherefortheloop = await ScheduleStorageStart().readSchedule();
+      Map metoo = await ScheduleStorageEnd().readSchedule();
+      for (String key in imjustherefortheloop.keys) {
+        setState(() {
+          scheduleStart[key] = imjustherefortheloop[key];
+          scheduleEnd[key] = metoo[key];
+        });
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  @override
   void initState() {
     super.initState();
     getLocalePref();
+    getLocalStoredSchedule();
   }
 
   void setLocale(Locale value) async {
@@ -63,25 +121,25 @@ class MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       locale: _locale,
-      localizationsDelegates: [
+      localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: [
+      supportedLocales: const [
         Locale('en', ''), // English, no country code
         Locale('ar', ''), // Arabic , no country code
         Locale('ur', '')
       ],
       initialRoute: '/',
       routes: {
-        '/': (context) => Loading(),
-        '/home': (context) => Home(),
-        '/Settings': (context) => Settings(),
-        '/About us': (context) => Aboutus(),
-        '/corrections': (context) => Corrections(),
-        '/languagesetting': (context) => LanguageSetting(),
+        '/': (context) => const Loading(),
+        '/home': (context) => const Home(),
+        '/Settings': (context) => const Settings(),
+        '/About us': (context) => const Aboutus(),
+        '/corrections': (context) => const Corrections(),
+        '/languagesetting': (context) => const LanguageSetting(),
       },
     );
   }
@@ -94,24 +152,73 @@ class MyAppState extends State<MyApp> {
   Future<void> getLocalePref() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _locale = Locale(prefs.getString('language')!);
+      try {
+        _locale = Locale(prefs.getString('language')!);
+      } catch (e) {
+        print(e);
+      }
     });
   }
-}
 
-// try {
-//   setState(() {
-//     _locale = Locale(prefs.getString('language')!);
-//   });
-// } catch (e) {
-//   print(e);
-// }
+  void scheduleSilence() async {
+    try {
+      for (int i = 0; i < 5; i++) {
+        if (DateTime.parse(scheduleStart.values.toList()[i])
+            .isAfter(DateTime.now())) {
+          await AndroidAlarmManager.oneShotAt(
+              DateTime.parse(scheduleStart.values.toList()[i])
+                  .subtract(const Duration(minutes: 5)),
+              100 - i,
+              rescheduleOnReboot: true,
+              exact: true,
+              createSilence);
+
+          await AndroidAlarmManager.oneShotAt(
+              DateTime.parse(scheduleEnd.values.toList()[i]),
+              1000 - i,
+              rescheduleOnReboot: true,
+              exact: true,
+              disableSilence);
+
+          print('is this working?${scheduleStart.values.toList()[i]}');
+        }
+        if (DateTime.parse(scheduleStart.values.toList()[i])
+            .isBefore(DateTime.now())) {
+          await AndroidAlarmManager.oneShotAt(
+              DateTime.parse(scheduleStart.values.toList()[i])
+                  .add(const Duration(days: 1))
+                  .subtract(const Duration(minutes: 5)),
+              200 - i,
+              rescheduleOnReboot: true,
+              exact: true,
+              createSilence);
+
+          await AndroidAlarmManager.oneShotAt(
+              DateTime.parse(scheduleEnd.values.toList()[i])
+                  .add(const Duration(days: 1)),
+              2000 - i,
+              rescheduleOnReboot: true,
+              exact: true,
+              disableSilence);
+
+          print(
+              'is this working for next day?${DateTime.parse(scheduleEnd.values.toList()[i]).add(const Duration(days: 1))}');
+        }
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AndroidAlarmManager.initialize();
   await LocalNotifications().initialize();
+  Workmanager().initialize(
+    callbackDispatcher, // The top level function, aka callbackDispatche//
+  );
+  Workmanager().registerOneOffTask("task-identifier", "simpleTask");
 
-  runApp(MyApp());
-  BackgroundFetch.registerHeadlessTask(backgroundFetchHeadlessTask);
+  runApp(const MyApp());
 }
