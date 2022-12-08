@@ -55,10 +55,18 @@ void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     switch (task) {
       case Periodic1HourSchedulingTask:
-        createSilenceBackgroundNotification();
-        MyAppState().scheduleSilence();
-        print("$Periodic1HourSchedulingTask was executed");
-        break;
+        try {
+          switch (MyAppState.isSchedulingON) {
+            case (true):
+              createSilenceBackgroundNotification();
+              MyAppState().scheduleSilence();
+              print("$Periodic1HourSchedulingTask was executed");
+              return Future.value(true);
+          }
+        } catch (e) {
+          print(e);
+          return Future.value(false);
+        }
     }
 
     return Future.value(true);
@@ -75,7 +83,8 @@ class MyApp extends StatefulWidget {
       context.findAncestorStateOfType<MyAppState>();
 }
 
-class MyAppState extends State<MyApp> {
+class MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  static bool? isSchedulingON;
   Locale? _locale;
 
   final int day = DateTime.now().day;
@@ -107,14 +116,49 @@ class MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     getLocalePref();
     getLocalStoredSchedule();
+    getSchedulingPref();
+    try {
+      switch (isSchedulingON) {
+        case (true):
+          Workmanager().registerPeriodicTask(
+            Periodic1HourSchedulingTask,
+            Periodic1HourSchedulingTask,
+            frequency: const Duration(hours: 2),
+          );
+          break;
+      }
+    } catch (e) {
+      print(e);
+    }
   }
 
   void setLocale(Locale value) async {
     setState(() {
       _locale = value;
     });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    if (state == AppLifecycleState.detached) {
+      Workmanager().registerPeriodicTask(
+        Periodic1HourSchedulingTask,
+        Periodic1HourSchedulingTask,
+        frequency: const Duration(hours: 2),
+      );
+    }
+    if (state == AppLifecycleState.paused) {
+      Workmanager().registerPeriodicTask(
+        Periodic1HourSchedulingTask,
+        Periodic1HourSchedulingTask,
+        frequency: const Duration(hours: 2),
+      );
+    }
   }
 
   @override
@@ -156,6 +200,24 @@ class MyAppState extends State<MyApp> {
         _locale = Locale(prefs.getString('language')!);
       } catch (e) {
         print(e);
+      }
+    });
+  }
+
+  Future<void> setSchedulingPref(value) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setBool('scheduling', value);
+  }
+
+  Future<void> getSchedulingPref() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      try {
+        isSchedulingON = prefs.getBool('scheduling')!;
+      } catch (e) {
+        print('something wrong with setting isSchedulingON $e');
+        isSchedulingON = true;
+        setSchedulingPref(true);
       }
     });
   }
@@ -202,7 +264,7 @@ class MyAppState extends State<MyApp> {
               disableSilence);
 
           print(
-              'is this working for next day?${DateTime.parse(scheduleEnd.values.toList()[i]).add(const Duration(days: 1))}');
+              'is this working for next day?${DateTime.parse(scheduleStart.values.toList()[i]).add(const Duration(days: 1))}');
         }
       }
     } catch (e) {
@@ -218,7 +280,6 @@ void main() async {
   Workmanager().initialize(
     callbackDispatcher, // The top level function, aka callbackDispatche//
   );
-  Workmanager().registerOneOffTask("task-identifier", "simpleTask");
 
   runApp(const MyApp());
 }

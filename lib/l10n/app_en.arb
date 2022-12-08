@@ -40,6 +40,9 @@
     "aboutUsHello1": "Hello! thank you for using my app. If you have any queries please feel free to contact me here:",
     "aboutUsHello2": "You can also leave a review on the Google Play store citing any issues you may have or features you would like implemented.",
     "aboutUsApiTalk":"This application uses the open source API provided by the good people at aladhan.com. The API serves as a main part of the functionality of this app.",
-    "aboutUsFlutterTalk": "This app was developed using flutter, an open-source UI software development kit. Many functions of the app mainly or partially use packages provided by the flutter community."
+    "aboutUsFlutterTalk": "This app was developed using flutter, an open-source UI software development kit. Many functions of the app mainly or partially use packages provided by the flutter community.",
+    "schedulingSetting": "Scheduling of times of silence",
+    "schedulingSettingSubtitle": "This is on by default. You can turn it off if you would like to skip scheduling times of silence for a period of time.",
+    "schedulingIsOff": "Scheduling has been turned off in the settings."
 
 }

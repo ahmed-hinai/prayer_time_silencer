@@ -12,7 +12,7 @@ class _AboutusState extends State<Aboutus> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.grey[200],
+        backgroundColor: Colors.grey[800],
         appBar: AppBar(
             title: Text(AppLocalizations.of(context)!.aboutUs),
             centerTitle: true,
@@ -23,7 +23,7 @@ class _AboutusState extends State<Aboutus> {
             child: SizedBox(
                 height: 280,
                 child: Card(
-                  color: Colors.grey[800],
+                  color: Colors.grey[900],
                   child: Padding(
                     padding: const EdgeInsets.all(28.0),
                     child: Column(
@@ -32,10 +32,10 @@ class _AboutusState extends State<Aboutus> {
                         Text(
                           AppLocalizations.of(context)!.aboutUsHello1,
                           style: TextStyle(
-                              color: Colors.grey[100], fontSize: 18.0),
+                              color: Colors.grey[100], fontSize: 16.0),
                         ),
                         SizedBox(
-                          height: 50,
+                          height: 45,
                           width: 420,
                           child: Card(
                               color: Colors.grey[700],
@@ -46,7 +46,7 @@ class _AboutusState extends State<Aboutus> {
                                   child: SelectableText(
                                     'ahmedhinaibuilds@gmail.com',
                                     style: TextStyle(
-                                        color: Colors.grey[100], fontSize: 18),
+                                        color: Colors.grey[100], fontSize: 16),
                                   ),
                                 ),
                               )),
@@ -54,7 +54,7 @@ class _AboutusState extends State<Aboutus> {
                         Text(
                           AppLocalizations.of(context)!.aboutUsHello2,
                           style: TextStyle(
-                              color: Colors.grey[100], fontSize: 18.0),
+                              color: Colors.grey[100], fontSize: 16.0),
                         ),
                       ],
                     ),
@@ -66,7 +66,7 @@ class _AboutusState extends State<Aboutus> {
             child: SizedBox(
                 height: 280,
                 child: Card(
-                  color: Colors.grey[800],
+                  color: Colors.grey[900],
                   child: Padding(
                     padding: const EdgeInsets.all(28.0),
                     child: Column(
@@ -82,7 +82,7 @@ class _AboutusState extends State<Aboutus> {
                         Text(
                           AppLocalizations.of(context)!.aboutUsApiTalk,
                           style: TextStyle(
-                              color: Colors.grey[100], fontSize: 18.0),
+                              color: Colors.grey[100], fontSize: 16.0),
                         ),
                       ],
                     ),
@@ -94,7 +94,7 @@ class _AboutusState extends State<Aboutus> {
             child: SizedBox(
                 height: 280,
                 child: Card(
-                  color: Colors.grey[800],
+                  color: Colors.grey[900],
                   child: Padding(
                     padding: const EdgeInsets.all(28.0),
                     child: Column(
@@ -104,13 +104,13 @@ class _AboutusState extends State<Aboutus> {
                           padding: const EdgeInsets.all(8.0),
                           child: Image(
                             image: const AssetImage('assets/flutter_icon.png'),
-                            width: MediaQuery.of(context).size.width / 6,
+                            width: MediaQuery.of(context).size.width / 6.5,
                           ),
                         ),
                         Text(
                           AppLocalizations.of(context)!.aboutUsFlutterTalk,
                           style: TextStyle(
-                              color: Colors.grey[100], fontSize: 18.0),
+                              color: Colors.grey[100], fontSize: 16.0),
                         ),
                       ],
                     ),
