@@ -19,7 +19,7 @@
         android:requestLegacyExternalStorage="true"
         android:label="prayer_time_silencer"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/launcher_icon">
         <receiver android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver"><intent-filter> 
         <action android:name="android.intent.action.BOOT_COMPLETED"></action></intent-filter></receiver>
         <receiver android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />

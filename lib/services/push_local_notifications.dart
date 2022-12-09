@@ -1,9 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
-// import 'package:flutter_native_timezone/flutter_native_timezone.dart';
-// import 'package:prayer_time_silencer/services/set_device_silent.dart';
-// import 'package:sound_mode/permission_handler.dart';
+import 'package:flutter/material.dart';
 
 class LocalNotifications {
   LocalNotifications();
@@ -13,8 +11,7 @@ class LocalNotifications {
   Future<void> initialize() async {
     tz.initializeTimeZones();
     AndroidInitializationSettings androidInitializationSettings =
-        const AndroidInitializationSettings(
-            '@drawable/ic_stat_notifications_off');
+        const AndroidInitializationSettings('@drawable/ic_bg_service_small');
 
     final InitializationSettings settings =
         InitializationSettings(android: androidInitializationSettings);
@@ -37,7 +34,8 @@ class LocalNotifications {
             importance: Importance.max,
             priority: Priority.max,
             timeoutAfter: 300000,
-            styleInformation: BigTextStyleInformation(''),
+            color: Color.fromARGB(255, 7, 64, 111),
+            channelShowBadge: false,
             playSound: false);
 
     return const NotificationDetails(android: androidNotificationDetails);
@@ -61,7 +59,7 @@ class ShortLocalNotifications {
     tz.initializeTimeZones();
     AndroidInitializationSettings androidInitializationSettings =
         const AndroidInitializationSettings(
-            '@drawable/ic_stat_notifications_off');
+            '@drawable/ic_stat_prayer_time_silencer');
 
     final InitializationSettings settings =
         InitializationSettings(android: androidInitializationSettings);

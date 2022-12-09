@@ -919,11 +919,11 @@ class _HomeState extends State<Home> {
                                           timingsvisible2 = true;
                                           confirmvisible = true;
                                           scheduleSilence();
-                                          Workmanager().registerPeriodicTask(
-                                            Periodic1HourSchedulingTask,
-                                            Periodic1HourSchedulingTask,
-                                            frequency: const Duration(hours: 2),
-                                          );
+                                          // Workmanager().registerPeriodicTask(
+                                          //   Periodic1HourSchedulingTask,
+                                          //   Periodic1HourSchedulingTask,
+                                          //   frequency: const Duration(hours: 2),
+                                          // );
                                           break;
                                         case (false):
                                           ScaffoldMessenger.of(context)
@@ -1103,12 +1103,14 @@ class _HomeState extends State<Home> {
                                     timingsvisible = true;
                                   });
                                 },
-                                child: Padding(
-                                  padding: const EdgeInsets.all(28.0),
-                                  child: Icon(
-                                    Icons.edit,
-                                    color: Colors.blue[900],
-                                    size: 40,
+                                child: Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(28.0),
+                                    child: Icon(
+                                      Icons.edit,
+                                      color: Colors.blue[900],
+                                      size: 40,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -1173,12 +1175,14 @@ class _HomeState extends State<Home> {
                                         SnackBar(content: Text('$e')));
                                   }
                                 },
-                                child: Padding(
-                                  padding: const EdgeInsets.all(28.0),
-                                  child: Icon(
-                                    Icons.location_on,
-                                    color: Colors.blue[900],
-                                    size: 40,
+                                child: Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(28.0),
+                                    child: Icon(
+                                      Icons.location_on,
+                                      color: Colors.blue[900],
+                                      size: 40,
+                                    ),
                                   ),
                                 ),
                               ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:prayer_time_silencer/main.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 
 class Settings extends StatefulWidget {
   const Settings({super.key});
@@ -41,10 +42,18 @@ class _SettingsState extends State<Settings> {
             ),
             SwitchListTile(
               value: MyAppState.isSchedulingON!,
-              onChanged: (value) {
+              onChanged: (value) async {
+                final service = FlutterBackgroundService();
+                var isRunning = await service.isRunning();
+
                 setState(() {
                   MyAppState.isSchedulingON = !MyAppState.isSchedulingON!;
                   MyAppState().setSchedulingPref(value);
+                  if (MyAppState.isSchedulingON!) {
+                    service.startService();
+                  } else {
+                    service.invoke("stopService");
+                  }
                 });
               },
               shape: RoundedRectangleBorder(

@@ -1,5 +1,9 @@
 name: prayer_time_silencer
 description: A new Flutter project.
+flutter_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/prayer_time_silencer.png"
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -52,7 +56,6 @@ dependencies:
   workmanager: ^0.5.1
   android_alarm_manager_plus: ^2.1.0
   flutter_native_timezone: ^2.0.0
-  background_fetch: ^1.1.2
   simple_animations: ^5.0.0+3
   numberpicker: ^2.1.1
 
@@ -60,6 +63,10 @@ dependencies:
     sdk: flutter
   open_settings: ^2.0.2
   shared_preferences: ^2.0.15
+  background_fetch: ^1.1.2
+  flutter_background_service: ^2.4.5
+  device_info_plus: ^8.0.0
+  flutter_launcher_icons: ^0.11.0
 
 dev_dependencies:
   flutter_test:
