@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:prayer_time_silencer/main.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +15,8 @@ import 'package:numberpicker/numberpicker.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:open_settings/open_settings.dart';
-import 'package:workmanager/workmanager.dart';
+
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -201,42 +203,56 @@ class _HomeState extends State<Home> {
                       notificationBody =
                           AppLocalizations.of(context)!.doNotDistrubBody;
                       Navigator.pop(context);
-                      GetLocationFromInput newLocation =
-                          GetLocationFromInput(location: text);
-                      await newLocation.getLocationFromUserInput();
-                      latitude = newLocation.latitude;
-                      longitude = newLocation.longitude;
-                      CorrectionsStorage storedCorrections =
-                          CorrectionsStorage();
-                      var newCorrections =
-                          await storedCorrections.readCorrections();
-                      Timings instance = Timings(
-                          lat: latitude,
-                          long: longitude,
-                          day: day,
-                          month: month,
-                          year: year,
-                          corrections: newCorrections);
-                      await instance.getTimings();
-                      prayers = instance.prayers;
-                      CreateSchedule getSchedule = CreateSchedule(
-                          prayers: prayers,
-                          prewait: currentValueStartMap,
-                          wait: currentValueEndMap);
-                      await getSchedule.createSchedule();
-                      scheduleStart = getSchedule.scheduleStart;
-                      scheduleEnd = getSchedule.scheduleEnd;
-                      setState(() {
-                        for (String key in oldPrayers.keys) {
-                          oldPrayers[key] =
-                              DateFormat.Hm().format(prayers[key]!);
-                          timingsvisible2 = false;
-                          timingsvisible = true;
-                          schedulevisible = true;
-                          confirmvisible = false;
-                          gpsvisible = false;
+
+                      try {
+                        GetLocationFromInput newLocation =
+                            GetLocationFromInput(location: text);
+                        await newLocation.getLocationFromUserInput();
+                        latitude = newLocation.latitude;
+                        longitude = newLocation.longitude;
+                        var connectivityResult =
+                            await (Connectivity().checkConnectivity());
+                        if (connectivityResult == ConnectivityResult.none) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text(AppLocalizations.of(context)!
+                                  .networkFailMessage)));
                         }
-                      });
+                        CorrectionsStorage storedCorrections =
+                            CorrectionsStorage();
+                        var newCorrections =
+                            await storedCorrections.readCorrections();
+                        Timings instance = Timings(
+                            lat: latitude,
+                            long: longitude,
+                            day: day,
+                            month: month,
+                            year: year,
+                            corrections: newCorrections);
+                        await instance.getTimings();
+                        prayers = instance.prayers;
+                        CreateSchedule getSchedule = CreateSchedule(
+                            prayers: prayers,
+                            prewait: currentValueStartMap,
+                            wait: currentValueEndMap);
+                        await getSchedule.createSchedule();
+                        scheduleStart = getSchedule.scheduleStart;
+                        scheduleEnd = getSchedule.scheduleEnd;
+                        setState(() {
+                          for (String key in oldPrayers.keys) {
+                            oldPrayers[key] =
+                                DateFormat.Hm().format(prayers[key]!);
+                            timingsvisible2 = false;
+                            timingsvisible = true;
+                            schedulevisible = true;
+                            confirmvisible = false;
+                            gpsvisible = false;
+                          }
+                        });
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text(
+                                AppLocalizations.of(context)!.failedMessage)));
+                      }
                     }),
                     onChanged: (value) {
                       print('First text field: $value');
@@ -254,7 +270,7 @@ class _HomeState extends State<Home> {
           ),
         ),
         appBar: AppBar(
-          elevation: 3.0,
+          elevation: 1.0,
           title: const Text(""),
           centerTitle: true,
           backgroundColor: Colors.grey[900],
@@ -677,6 +693,16 @@ class _HomeState extends State<Home> {
                                 AppLocalizations.of(context)!.doNotDistrubBody;
                             GetLocationFromGPS newLocation =
                                 GetLocationFromGPS();
+                            var connectivityResult =
+                                await (Connectivity().checkConnectivity());
+                            if (connectivityResult == ConnectivityResult.none) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      content: Text(
+                                          AppLocalizations.of(context)!
+                                              .networkFailMessage)));
+                            }
+
                             try {
                               await newLocation.getLocationFromGPS();
                               latitude = newLocation.latitude;
@@ -713,8 +739,11 @@ class _HomeState extends State<Home> {
                               });
                             } catch (e) {
                               print(e);
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(SnackBar(content: Text('$e')));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      content: Text(
+                                          AppLocalizations.of(context)!
+                                              .failedMessage)));
                             }
                           },
                           icon: const Icon(Icons.location_on),
@@ -1081,7 +1110,7 @@ class _HomeState extends State<Home> {
                 Padding(
                   padding: const EdgeInsets.all(50.0),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Expanded(
                         child: Visibility(
@@ -1093,7 +1122,7 @@ class _HomeState extends State<Home> {
                                   AppLocalizations.of(context)!.editTooltip,
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.grey[800]),
+                                    backgroundColor: Colors.blue[900]),
                                 onPressed: () async {
                                   setState(() {
                                     gpsvisible = false;
@@ -1103,14 +1132,12 @@ class _HomeState extends State<Home> {
                                     timingsvisible = true;
                                   });
                                 },
-                                child: Center(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(28.0),
-                                    child: Icon(
-                                      Icons.edit,
-                                      color: Colors.blue[900],
-                                      size: 40,
-                                    ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(2.0),
+                                  child: Icon(
+                                    Icons.edit,
+                                    color: Colors.grey[900],
+                                    size: 40,
                                   ),
                                 ),
                               ),
@@ -1128,10 +1155,21 @@ class _HomeState extends State<Home> {
                                   AppLocalizations.of(context)!.locationTooltip,
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.grey[800]),
+                                    backgroundColor: Colors.blue[900]),
                                 onPressed: () async {
                                   GetLocationFromGPS newLocation =
                                       GetLocationFromGPS();
+                                  var connectivityResult = await (Connectivity()
+                                      .checkConnectivity());
+                                  if (connectivityResult ==
+                                      ConnectivityResult.none) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                            content: Text(
+                                                AppLocalizations.of(context)!
+                                                    .networkFailMessage)));
+                                  }
+
                                   try {
                                     await newLocation.getLocationFromGPS();
                                     latitude = newLocation.latitude;
@@ -1163,26 +1201,24 @@ class _HomeState extends State<Home> {
                                         oldPrayers[key] = DateFormat.Hm()
                                             .format(prayers[key]!);
                                         gpsvisible = false;
-                                        confirmvisible = false;
                                         schedulevisible = true;
-                                        timingsvisible2 = false;
-                                        timingsvisible = true;
                                       }
                                     });
                                   } catch (e) {
                                     print(e);
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('$e')));
+                                        SnackBar(
+                                            content: Text(
+                                                AppLocalizations.of(context)!
+                                                    .failedMessage)));
                                   }
                                 },
-                                child: Center(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(28.0),
-                                    child: Icon(
-                                      Icons.location_on,
-                                      color: Colors.blue[900],
-                                      size: 40,
-                                    ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(2.0),
+                                  child: Icon(
+                                    Icons.location_on,
+                                    color: Colors.grey[900],
+                                    size: 40,
                                   ),
                                 ),
                               ),

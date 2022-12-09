@@ -49,11 +49,13 @@ class _SettingsState extends State<Settings> {
                 setState(() {
                   MyAppState.isSchedulingON = !MyAppState.isSchedulingON!;
                   MyAppState().setSchedulingPref(value);
-                  if (MyAppState.isSchedulingON!) {
-                    service.startService();
-                  } else {
-                    service.invoke("stopService");
-                  }
+                  try {
+                    if (MyAppState.isSchedulingON!) {
+                      service.startService();
+                    } else {
+                      service.invoke("stopService");
+                    }
+                  } catch (e) {}
                 });
               },
               shape: RoundedRectangleBorder(

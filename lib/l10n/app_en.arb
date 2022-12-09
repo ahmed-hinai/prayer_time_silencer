@@ -43,6 +43,8 @@
     "aboutUsFlutterTalk": "This app was developed using flutter, an open-source UI software development kit. Many functions of the app mainly or partially use packages provided by the flutter community.",
     "schedulingSetting": "Scheduling of times of silence",
     "schedulingSettingSubtitle": "This is on by default. You can turn it off if you would like to skip scheduling times of silence for a period of time.",
-    "schedulingIsOff": "Scheduling has been turned off in the settings."
+    "schedulingIsOff": "Scheduling has been turned off in the settings.",
+    "networkFailMessage": "Can't connect to the internet. Trying to fetch local data..",
+    "failedMessage": "Failed. Check your network connection and or that the app has location permission."
 
 }
