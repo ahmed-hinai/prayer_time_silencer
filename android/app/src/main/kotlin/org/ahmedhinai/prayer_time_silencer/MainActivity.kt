@@ -1,4 +1,4 @@
-package com.example.prayer_time_silencer
+package org.ahmedhinai.prayer_time_silencer
 
 
 import androidx.annotation.NonNull;

@@ -102,7 +102,7 @@ class _HomeState extends State<Home> {
       //print('this is scheduleStartL $scheduleStartL');
       setState(() {
         for (var key in prayersL.keys) {
-          prayers[key] = prayersL[key];
+          oldPrayers[key] = DateFormat.Hm().format(prayersL[key]!);
           scheduleStart[key] = scheduleStartL[key];
           scheduleEnd[key] = scheduleEndL[key];
         }

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:prayer_time_silencer/services/get_prayer_times_local.dart';
 import 'package:prayer_time_silencer/services/silence_scheduler.dart';
-import 'package:prayer_time_silencer/services/wait_and_prewait_store.dart';
 
 class Loading extends StatefulWidget {
   const Loading({super.key});
@@ -33,7 +32,7 @@ class _LoadingState extends State<Loading> {
       var lastKnownPrayers = localinstance.prayers;
       // //print(lastKnownPrayers);
 
-      await Future.delayed(Duration(milliseconds: 1));
+      await Future.delayed(Duration(milliseconds: 2000));
       Navigator.pushReplacementNamed(context, '/home', arguments: {
         'lastKnownPrayers': lastKnownPrayers,
         'lastKnownStartSchedule': lastKnownStartSchedule,

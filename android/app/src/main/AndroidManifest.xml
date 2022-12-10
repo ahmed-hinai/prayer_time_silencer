@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.example.prayer_time_silencer">
+    package="org.ahmedhinai.prayer_time_silencer">
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -17,7 +17,7 @@
    <application
         tools:replace="android:label"
         android:requestLegacyExternalStorage="true"
-        android:label="prayer_time_silencer"
+        android:label="Sukun"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <receiver android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver"><intent-filter> 
