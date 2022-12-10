@@ -21,7 +21,7 @@ class ScheduleStorageStart {
       return jsonDecode(contents);
     } catch (e) {
       // If encountering an error, return 0
-      print(' is this from here perhapse ?? $e');
+      //print(' is this from here perhapse ?? $e');
       return '';
     }
   }
@@ -54,7 +54,7 @@ class ScheduleStorageEnd {
       return jsonDecode(contents);
     } catch (e) {
       // If encountering an error, return 0
-      print(' is this from here perhapse ?? $e');
+      //print(' is this from here perhapse ?? $e');
       return '';
     }
   }

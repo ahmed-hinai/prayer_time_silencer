@@ -28,7 +28,7 @@ class CorrectionsStorage {
       return jsonDecode(contents);
     } catch (e) {
       // If encountering an error, return 0
-      print(' is this from here perhapse ?? $e');
+      //print(' is this from here perhapse ?? $e');
       return currentValue;
     }
   }

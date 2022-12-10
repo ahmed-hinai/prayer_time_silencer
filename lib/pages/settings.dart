@@ -18,7 +18,7 @@ class _SettingsState extends State<Settings> {
         appBar: AppBar(
             title: Text(AppLocalizations.of(context)!.settings),
             centerTitle: true,
-            backgroundColor: Colors.blue[900]),
+            backgroundColor: Color.fromARGB(255, 7, 64, 111)),
         body: ListView(
           children: [
             ListTile(

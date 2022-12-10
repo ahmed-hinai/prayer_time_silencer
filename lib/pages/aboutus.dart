@@ -16,7 +16,7 @@ class _AboutusState extends State<Aboutus> {
         appBar: AppBar(
             title: Text(AppLocalizations.of(context)!.aboutUs),
             centerTitle: true,
-            backgroundColor: Colors.blue[900]),
+            backgroundColor: Color.fromARGB(255, 7, 64, 111)),
         body: ListView(shrinkWrap: true, children: [
           Padding(
             padding: const EdgeInsets.all(8.0),

@@ -12,22 +12,22 @@ class MuteSystemSounds {
     }
     if (isGranted) {
       try {
-        print('someone called me!!!');
+        //print('someone called me!!!');
         await SoundMode.setSoundMode(RingerModeStatus.silent);
       } catch (e) {
-        print('Please enable permissions required');
-        print(e);
+        //print('Please enable permissions required');
+        //print(e);
       }
     }
   }
 
   Future<void> enableSystemSounds() async {
     try {
-      print('someone called me!!!');
+      //print('someone called me!!!');
       await SoundMode.setSoundMode(RingerModeStatus.normal);
     } catch (e) {
-      print('Please enable permissions required');
-      print(e);
+      //print('Please enable permissions required');
+      //print(e);
     }
   }
 }

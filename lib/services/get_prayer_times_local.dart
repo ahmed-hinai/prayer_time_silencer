@@ -42,7 +42,7 @@ class TimingsLocal {
       prayers['Isha'] = DateTime.parse(
           '$year-$month-$day ${data[day]['timings']['Isha'].substring(0, 5)}');
     } catch (e) {
-      print(e);
+      //print(e);
     }
   }
 }

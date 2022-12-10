@@ -15,7 +15,7 @@ class GetLocationFromInput {
       latitude = double.parse(coords.latitude.toStringAsFixed(3));
       longitude = double.parse(coords.longitude.toStringAsFixed(3));
     } catch (e) {
-      print(e);
+      //print(e);
     }
   }
 }
@@ -67,7 +67,7 @@ class GetLocationFromGPS {
         latitude = double.parse(position.latitude.toStringAsFixed(3));
         longitude = double.parse(position.longitude.toStringAsFixed(3));
       } catch (e) {
-        print(e);
+        //print(e);
       }
     }
   }

@@ -51,12 +51,12 @@ class _HomeState extends State<Home> {
   void getValueStartMap() async {
     try {
       Map newStart = await WaitAndPreWaitStoreStart().readWaitAndPreWait();
-      print('is this really a new start$newStart');
+      //print('is this really a new start$newStart');
       for (String key in newStart.keys) {
         currentValueStartMap[key] = newStart[key];
       }
     } catch (e) {
-      print(e);
+      //print(e);
     }
   }
 
@@ -69,7 +69,7 @@ class _HomeState extends State<Home> {
         currentValueEndMap[key] = newEnd[key];
       }
     } catch (e) {
-      print(e);
+      //print(e);
     }
   }
 
@@ -78,9 +78,12 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
     // initPlatformState();
-    getLocaltimings();
     getValueStartMap();
     getValueEndMap();
+    getLocaltimings();
+    Future.delayed(Duration.zero, () {
+      this.secondComings();
+    });
   }
 
   static Future<void> pop({bool? animated}) async {
@@ -88,20 +91,54 @@ class _HomeState extends State<Home> {
         .invokeMethod<void>('SystemNavigator.pop', animated);
   }
 
+  void secondComings() async {
+    try {
+      Map itsComingsHome = ModalRoute.of(context)!.settings.arguments as Map;
+      //print('this is itsComingsHome $itsComingsHome');
+      var prayersL = await itsComingsHome['lastKnownPrayers'];
+
+      var scheduleStartL = await itsComingsHome['lastKnownStartSchedule'];
+      var scheduleEndL = itsComingsHome['lastKnownEndSchedule'];
+      //print('this is scheduleStartL $scheduleStartL');
+      setState(() {
+        for (var key in prayersL.keys) {
+          prayers[key] = prayersL[key];
+          scheduleStart[key] = scheduleStartL[key];
+          scheduleEnd[key] = scheduleEndL[key];
+        }
+
+        gpsvisible = false;
+        timingsvisible = false;
+        timingsvisible2 = true;
+        schedulevisible = false;
+        confirmvisible = true;
+      });
+    } catch (e) {
+      //print('hello? $e');
+      setState(() {
+        gpsvisible = true;
+        timingsvisible = false;
+        timingsvisible2 = false;
+        schedulevisible = false;
+        confirmvisible = false;
+      });
+    }
+  }
+
   late var timeSelected;
 
-  late double latitude;
-  late double longitude;
+  double latitude = 0;
+  double longitude = 0;
   static bool? weHaveTimings;
   final int day = DateTime.now().day;
   final int month = DateTime.now().month;
   final int year = DateTime.now().year;
   var icon = const Icon(Icons.notifications);
   bool gpsvisible = true;
+  bool timingsvisible = false;
+  bool timingsvisible2 = false;
   bool schedulevisible = false;
   bool confirmvisible = false;
-  bool timingsvisible = true;
-  bool timingsvisible2 = false;
   List<bool> selections = [true, false, false, false, false];
   static String notificationTitle = "Prayer Time Silencer";
   static String notificationBody = "Your device will be silenced in 5 minutes.";
@@ -136,7 +173,7 @@ class _HomeState extends State<Home> {
         weHaveTimings = true;
       });
     } catch (e) {
-      print(e);
+      //print(e);
       setState(() {
         weHaveTimings = false;
       });
@@ -167,7 +204,7 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        print('back button pressed');
+        //print('back button pressed');
         if (ModalRoute.of(context)?.settings.name == '/home') {
           pop();
           return false;
@@ -178,7 +215,7 @@ class _HomeState extends State<Home> {
       child: Scaffold(
         resizeToAvoidBottomInset: false,
         drawer: Drawer(
-          backgroundColor: Colors.blue[900],
+          backgroundColor: Color.fromARGB(255, 7, 64, 111),
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Column(
@@ -255,7 +292,7 @@ class _HomeState extends State<Home> {
                       }
                     }),
                     onChanged: (value) {
-                      print('First text field: $value');
+                      //print('First text field: $value');
                     },
                     decoration: InputDecoration(
                       filled: true,
@@ -306,7 +343,7 @@ class _HomeState extends State<Home> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(18.0, 1.0, 18.0, 1.0),
                   child: Visibility(
-                      visible: timingsvisible,
+                      visible: timingsvisible!,
                       child: Transform.scale(
                         scale: .9,
                         child: ListView.builder(
@@ -344,7 +381,8 @@ class _HomeState extends State<Home> {
                                               Expanded(
                                                 flex: 8,
                                                 child: Card(
-                                                  color: Colors.blue[900],
+                                                  color: Color.fromARGB(
+                                                      255, 7, 64, 111),
                                                   shape: RoundedRectangleBorder(
                                                       borderRadius:
                                                           BorderRadius.circular(
@@ -457,7 +495,8 @@ class _HomeState extends State<Home> {
                                               Expanded(
                                                 flex: 8,
                                                 child: Card(
-                                                  color: Colors.blue[900],
+                                                  color: Color.fromARGB(
+                                                      255, 7, 64, 111),
                                                   shape: RoundedRectangleBorder(
                                                       borderRadius:
                                                           BorderRadius.circular(
@@ -492,7 +531,7 @@ class _HomeState extends State<Home> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(18.0, 1.0, 18.0, 1.0),
                   child: Visibility(
-                      visible: timingsvisible2,
+                      visible: timingsvisible2!,
                       child: Transform.scale(
                         scale: .9,
                         child: ListView.builder(
@@ -523,7 +562,8 @@ class _HomeState extends State<Home> {
                                               Expanded(
                                                 flex: 8,
                                                 child: Card(
-                                                  color: Colors.blue[900],
+                                                  color: Color.fromARGB(
+                                                      255, 7, 64, 111),
                                                   shape: RoundedRectangleBorder(
                                                       borderRadius:
                                                           BorderRadius.circular(
@@ -636,7 +676,8 @@ class _HomeState extends State<Home> {
                                               Expanded(
                                                 flex: 8,
                                                 child: Card(
-                                                  color: Colors.blue[900],
+                                                  color: Color.fromARGB(
+                                                      255, 7, 64, 111),
                                                   shape: RoundedRectangleBorder(
                                                       borderRadius:
                                                           BorderRadius.circular(
@@ -669,7 +710,7 @@ class _HomeState extends State<Home> {
                       )),
                 ),
                 Visibility(
-                  visible: gpsvisible,
+                  visible: gpsvisible!,
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(8.0, 200.0, 8.0, 230.0),
                     child: Column(
@@ -685,7 +726,7 @@ class _HomeState extends State<Home> {
                         //   size: 30.0,
                         // ),
                         IconButton(
-                          color: Colors.blue[900],
+                          color: Color.fromARGB(255, 7, 64, 111),
                           onPressed: () async {
                             notificationTitle =
                                 AppLocalizations.of(context)!.doNotDistrubTitle;
@@ -711,7 +752,7 @@ class _HomeState extends State<Home> {
                                   CorrectionsStorage();
                               var newCorrections =
                                   await storedCorrections.readCorrections();
-                              print('is this correct? $day');
+                              //print('is this correct? $day');
                               Timings instance = Timings(
                                   lat: latitude,
                                   long: longitude,
@@ -734,11 +775,12 @@ class _HomeState extends State<Home> {
                                   oldPrayers[key] =
                                       DateFormat.Hm().format(prayers[key]!);
                                   gpsvisible = false;
+                                  timingsvisible = true;
                                   schedulevisible = true;
                                 }
                               });
                             } catch (e) {
-                              print(e);
+                              //print(e);
                               ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                       content: Text(
@@ -759,7 +801,7 @@ class _HomeState extends State<Home> {
                 Visibility(
                   maintainAnimation: true,
                   maintainState: true,
-                  visible: schedulevisible,
+                  visible: schedulevisible!,
                   child: Transform.scale(
                     scale: .9,
                     child: Padding(
@@ -860,7 +902,7 @@ class _HomeState extends State<Home> {
                 Visibility(
                   maintainAnimation: true,
                   maintainState: true,
-                  visible: schedulevisible,
+                  visible: schedulevisible!,
                   child: Transform.scale(
                     scale: .9,
                     child: Padding(
@@ -904,7 +946,7 @@ class _HomeState extends State<Home> {
                 Visibility(
                   maintainAnimation: true,
                   maintainState: true,
-                  visible: schedulevisible,
+                  visible: schedulevisible!,
                   child: Transform.scale(
                     scale: .9,
                     child: Padding(
@@ -929,15 +971,14 @@ class _HomeState extends State<Home> {
                             Expanded(
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.blue[900],
+                                  backgroundColor:
+                                      Color.fromARGB(255, 7, 64, 111),
                                   elevation: 20.0,
                                 ),
                                 onPressed: () async {
                                   bool isGranted = (await PermissionHandler
                                       .permissionsGranted)!;
                                   Permission.manageExternalStorage.request();
-                                  Permission.ignoreBatteryOptimizations
-                                      .request();
 
                                   if (isGranted) {
                                     setState(() {
@@ -1022,7 +1063,7 @@ class _HomeState extends State<Home> {
                   ),
                 ),
                 Visibility(
-                    visible: schedulevisible,
+                    visible: schedulevisible!,
                     child: Transform.scale(
                       scale: .9,
                       child: SafeArea(
@@ -1040,7 +1081,6 @@ class _HomeState extends State<Home> {
                                   'month': month,
                                   'year': year
                                 });
-                            print((result['prayers']));
 
                             Map correctedPrayers = {};
                             correctedPrayers['Fajr'] =
@@ -1057,8 +1097,7 @@ class _HomeState extends State<Home> {
                                 prewait: currentValueStartMap,
                                 wait: currentValueEndMap);
                             await getNewSchedule.createSchedule();
-                            print(
-                                'was is das ${getNewSchedule.scheduleStart['Fajr']}');
+
                             setState(() {
                               oldPrayers['Fajr'] = DateFormat.Hm()
                                   .format(result['prayers']['Fajr']);
@@ -1085,13 +1124,13 @@ class _HomeState extends State<Home> {
                       ),
                     )),
                 Visibility(
-                    visible: confirmvisible,
+                    visible: confirmvisible!,
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(60, 0, 60, 8),
                       child: Column(
                         children: [
                           Card(
-                            color: Colors.blue[900],
+                            color: Color.fromARGB(255, 7, 64, 111),
                             child: Padding(
                               padding:
                                   const EdgeInsets.fromLTRB(58, 58, 58, 58),
@@ -1114,7 +1153,7 @@ class _HomeState extends State<Home> {
                     children: [
                       Expanded(
                         child: Visibility(
-                          visible: confirmvisible,
+                          visible: confirmvisible!,
                           child: Padding(
                             padding: const EdgeInsets.all(8),
                             child: Tooltip(
@@ -1122,7 +1161,8 @@ class _HomeState extends State<Home> {
                                   AppLocalizations.of(context)!.editTooltip,
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blue[900]),
+                                    backgroundColor:
+                                        Color.fromARGB(255, 7, 64, 111)),
                                 onPressed: () async {
                                   setState(() {
                                     gpsvisible = false;
@@ -1147,7 +1187,7 @@ class _HomeState extends State<Home> {
                       ),
                       Expanded(
                         child: Visibility(
-                          visible: confirmvisible,
+                          visible: confirmvisible!,
                           child: Padding(
                             padding: const EdgeInsets.all(8),
                             child: Tooltip(
@@ -1155,7 +1195,8 @@ class _HomeState extends State<Home> {
                                   AppLocalizations.of(context)!.locationTooltip,
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blue[900]),
+                                    backgroundColor:
+                                        Color.fromARGB(255, 7, 64, 111)),
                                 onPressed: () async {
                                   GetLocationFromGPS newLocation =
                                       GetLocationFromGPS();
@@ -1178,7 +1219,7 @@ class _HomeState extends State<Home> {
                                         CorrectionsStorage();
                                     var newCorrections = await storedCorrections
                                         .readCorrections();
-                                    print('is this correct? $day');
+                                    //print('is this correct? $day');
                                     Timings instance = Timings(
                                         lat: latitude,
                                         long: longitude,
@@ -1201,11 +1242,14 @@ class _HomeState extends State<Home> {
                                         oldPrayers[key] = DateFormat.Hm()
                                             .format(prayers[key]!);
                                         gpsvisible = false;
+                                        timingsvisible2 = false;
+                                        confirmvisible = false;
+                                        timingsvisible = true;
                                         schedulevisible = true;
                                       }
                                     });
                                   } catch (e) {
-                                    print(e);
+                                    //print(e);
                                     ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
                                             content: Text(
@@ -1235,37 +1279,6 @@ class _HomeState extends State<Home> {
     );
   }
 
-//   @pragma('vm:entry-point')
-//   static void createSilenceBackgroundNotification() async {
-//     final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-//     final preferred = widgetsBinding.window.locales;
-//     const supported = AppLocalizations.supportedLocales;
-//     final locale = basicLocaleListResolution(preferred, supported);
-//     final l10n = await AppLocalizations.delegate.load(locale);
-//     await LocalNotifications().showNotification(
-//         title: l10n.notificationTitleBackground,
-//         body: l10n.notificationBodyBackground);
-//   }
-
-//   @pragma('vm:entry-point')
-//   static void createSilence() async {
-//     final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-//     final preferred = widgetsBinding.window.locales;
-//     const supported = AppLocalizations.supportedLocales;
-//     final locale = basicLocaleListResolution(preferred, supported);
-//     final l10n = await AppLocalizations.delegate.load(locale);
-//     await LocalNotifications().showNotification(
-//         title: l10n.notificationTitle, body: l10n.notificationBody);
-//     await Future.delayed(const Duration(minutes: 5));
-//     await MuteSystemSounds().muteSystemSounds();
-//   }
-
-//   @pragma('vm:entry-point')
-//   static void disableSilence() async {
-//     await LocalNotifications().cancelNotification();
-//     await MuteSystemSounds().enableSystemSounds();
-//   }
-
   void scheduleSilence() async {
     try {
       for (int i = 0; i < 5; i++) {
@@ -1286,7 +1299,7 @@ class _HomeState extends State<Home> {
               exact: true,
               disableSilence);
 
-          print('is this working?${scheduleStart.values.toList()[i]}');
+          //print('is this working?${scheduleStart.values.toList()[i]}');
         }
         if (DateTime.parse(scheduleStart.values.toList()[i])
             .isBefore(DateTime.now())) {
@@ -1306,9 +1319,6 @@ class _HomeState extends State<Home> {
               rescheduleOnReboot: true,
               exact: true,
               disableSilence);
-
-          print(
-              'is this working for next day?${DateTime.parse(scheduleEnd.values.toList()[i]).add(const Duration(days: 1))}');
         }
       }
     } catch (e) {
@@ -1342,7 +1352,7 @@ class _HomeState extends State<Home> {
               exact: true,
               disableSilence);
 
-          print('is this working?${scheduleStart.values.toList()[i]}');
+          //print('is this working?${scheduleStart.values.toList()[i]}');
         }
         if (DateTime.parse(scheduleStart.values.toList()[i])
             .isBefore(DateTime.now())) {
@@ -1362,13 +1372,10 @@ class _HomeState extends State<Home> {
               rescheduleOnReboot: true,
               exact: true,
               disableSilence);
-
-          print(
-              'is this working for next day?${DateTime.parse(scheduleEnd.values.toList()[i]).add(const Duration(days: 1))}');
         }
       }
 
-      print(e);
+      //print(e);
     }
   }
 }

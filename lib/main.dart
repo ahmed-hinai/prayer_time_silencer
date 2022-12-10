@@ -53,11 +53,11 @@ void callbackDispatcher() {
             case (true):
               // createSilenceBackgroundNotification();
               MyAppState().scheduleSilence();
-              print("$Periodic1HourSchedulingTask was executed");
+              //print("$Periodic1HourSchedulingTask was executed");
               return Future.value(true);
           }
         } catch (e) {
-          print(e);
+          //print(e);
           return Future.value(false);
         }
     }
@@ -99,7 +99,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
         });
       }
     } catch (e) {
-      print(e);
+      //print(e);
     }
   }
 
@@ -112,18 +112,8 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     getSchedulingPref();
 
     // initPlatformState();
-    try {
-      switch (isSchedulingON) {
-        case (true):
-          Workmanager().registerPeriodicTask(
-            Periodic1HourSchedulingTask,
-            Periodic1HourSchedulingTask,
-            frequency: const Duration(hours: 2),
-          );
-          break;
-      }
-    } catch (e) {
-      print(e);
+    try {} catch (e) {
+      //print(e);
     }
   }
 
@@ -145,28 +135,12 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
     if (state == AppLifecycleState.inactive) {
       await Future.delayed(Duration(milliseconds: 1));
-      print('detached');
+      //print('detached');
 
-      try {
-        switch (isSchedulingON) {
-          case (true):
-            Workmanager().registerPeriodicTask(
-              Periodic1HourSchedulingTask,
-              Periodic1HourSchedulingTask,
-              frequency: const Duration(hours: 2),
-            );
-            break;
-        }
-      } catch (e) {
-        print(e);
-      }
+      try {} catch (e) {}
     }
-    if (state == AppLifecycleState.paused) {
-      print('paused');
-    }
-    if (state == AppLifecycleState.inactive) {
-      print('inactive');
-    }
+    if (state == AppLifecycleState.paused) {}
+    if (state == AppLifecycleState.inactive) {}
   }
 
   @override
@@ -207,7 +181,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
       try {
         _locale = Locale(prefs.getString('language')!);
       } catch (e) {
-        print(e);
+        //print(e);
       }
     });
   }
@@ -223,7 +197,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
       try {
         isSchedulingON = prefs.getBool('scheduling')!;
       } catch (e) {
-        print('something wrong with setting isSchedulingON $e');
+        //print('something wrong with setting isSchedulingON $e');
         isSchedulingON = true;
         setSchedulingPref(true);
       }
@@ -250,7 +224,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
               exact: true,
               disableSilence);
 
-          print('is this working?${scheduleStart.values.toList()[i]}');
+          //print('is this working?${scheduleStart.values.toList()[i]}');
         }
         if (DateTime.parse(scheduleStart.values.toList()[i])
             .isBefore(DateTime.now())) {
@@ -271,12 +245,11 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
               exact: true,
               disableSilence);
 
-          print(
-              'is this working for next day?${DateTime.parse(scheduleStart.values.toList()[i]).add(const Duration(days: 1))}');
+          //print('is this working for next day?${DateTime.parse(scheduleStart.values.toList()[i]).add(const Duration(days: 1))}');
         }
       }
     } catch (e) {
-      print(e);
+      //print(e);
     }
   }
 }
@@ -444,7 +417,7 @@ void onStart(ServiceInstance service) async {
   }
 
   /// you can see this log in logcat
-  // print('FLUTTER BACKGROUND SERVICE: ${DateTime.now()}');
+  // //print('FLUTTER BACKGROUND SERVICE: ${DateTime.now()}');
 
   // // test using external plugin
   // final deviceInfo = DeviceInfoPlugin();
