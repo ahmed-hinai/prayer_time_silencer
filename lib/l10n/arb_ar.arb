@@ -27,7 +27,7 @@
     "doNotDistrubTitle": "مطلوب إذن 'عدم الإزعاج'.",
     "doNotDistrubBody": "يتطلب التطبيق إذن 'عدم الإزعاج' حتى يعمل.",
     "notificationTitle":"كاتم صوت الهاتف وقت الصلاة",
-    "notificationBody": "سيتم كتم صوت جهازك بعد قليل",
+    "notificationBody": "هاتفك صامت",
     "notificationTitleBackground":"كاتم صوت الهاتف وقت الصلاة",
     "notificationBodyBackground": "التطبيق يجدول أوقات كتم الصوت التالية",
     "ok": "حسنا",

@@ -19,8 +19,6 @@ import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_background_service_android/flutter_background_service_android.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-
-
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
@@ -137,8 +135,6 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
       }
     });
   }
-
-
 }
 
 void main() async {
@@ -267,26 +263,10 @@ void onStart(ServiceInstance service) async {
     if (await service.isForegroundService()) {
       /// OPTIONAL for use custom notification
       /// the notification id must be equals with AndroidConfiguration when you call configure() method.
-      flutterLocalNotificationsPlugin.show(
-        888,
-        l10n.notificationTitleBackground,
-        l10n.notificationBodyBackground,
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
-              'my_foreground', 'MY FOREGROUND SERVICE',
-              icon: 'ic_bg_service_small',
-              ongoing: true,
-              enableVibration: false,
-              playSound: false,
-              color: Color.fromARGB(255, 7, 64, 111),
-              colorized: true,
-              showWhen: false,
-              ticker: '',
-              visibility: NotificationVisibility.secret,
-              channelShowBadge: false,
-              number: 0),
-        ),
-      );
+      LocalNotifications instance = LocalNotifications();
+      instance.showNotificationBackground(
+          title: l10n.notificationTitleBackground,
+          body: l10n.notificationBodyBackground);
     }
   }
 }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:prayer_time_silencer/main.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:prayer_time_silencer/pages/home.dart';
+import 'package:workmanager/workmanager.dart';
 
 class Settings extends StatefulWidget {
   const Settings({super.key});
@@ -52,8 +54,15 @@ class _SettingsState extends State<Settings> {
                   try {
                     if (MyAppState.isSchedulingON!) {
                       service.startService();
+                      Workmanager().registerPeriodicTask(
+                        Periodic6HourSchedulingTask,
+                        Periodic6HourSchedulingTask,
+                        frequency: const Duration(hours: 6),
+                      );
                     } else {
                       service.invoke("stopService");
+                      Workmanager()
+                          .cancelByUniqueName(Periodic6HourSchedulingTask);
                     }
                   } catch (e) {}
                 });

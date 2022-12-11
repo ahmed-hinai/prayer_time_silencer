@@ -23,23 +23,29 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 @pragma('vm:entry-point')
 void createSilence() async {
-  await MuteSystemSounds().muteSystemSounds();
-}
-
-@pragma('vm:entry-point')
-void createSilenceNotification() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   final preferred = widgetsBinding.window.locales;
   const supported = AppLocalizations.supportedLocales;
   final locale = basicLocaleListResolution(preferred, supported);
   final l10n = await AppLocalizations.delegate.load(locale);
-  await LocalNotifications().showNotification(
+  LocalNotifications instance = LocalNotifications();
+  instance.showNotificationSilence(
       title: l10n.notificationTitle, body: l10n.notificationBody);
+
+  await MuteSystemSounds().muteSystemSounds();
 }
 
 @pragma('vm:entry-point')
 void disableSilence() async {
-  await LocalNotifications().cancelNotification();
+  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  final preferred = widgetsBinding.window.locales;
+  const supported = AppLocalizations.supportedLocales;
+  final locale = basicLocaleListResolution(preferred, supported);
+  final l10n = await AppLocalizations.delegate.load(locale);
+  LocalNotifications instance = LocalNotifications();
+  instance.showNotificationBackground(
+      title: l10n.notificationTitleBackground,
+      body: l10n.notificationBodyBackground);
   await MuteSystemSounds().enableSystemSounds();
 }
 
@@ -1343,14 +1349,6 @@ class _HomeState extends State<Home> {
       for (int i = 0; i < 5; i++) {
         if (DateTime.parse(scheduleStart.values.toList()[i])
             .isAfter(DateTime.now())) {
-          await AndroidAlarmManager.cancel(10 - i);
-          await AndroidAlarmManager.oneShotAt(
-              DateTime.parse(scheduleStart.values.toList()[i])
-                  .subtract(Duration(seconds: 60)),
-              10 - i,
-              rescheduleOnReboot: true,
-              exact: true,
-              createSilenceNotification);
           await AndroidAlarmManager.cancel(100 - i);
 
           await AndroidAlarmManager.oneShotAt(
@@ -1372,15 +1370,6 @@ class _HomeState extends State<Home> {
         }
         if (DateTime.parse(scheduleStart.values.toList()[i])
             .isBefore(DateTime.now())) {
-          await AndroidAlarmManager.cancel(10 - i);
-          await AndroidAlarmManager.oneShotAt(
-              DateTime.parse(scheduleStart.values.toList()[i])
-                  .add(const Duration(days: 1))
-                  .subtract(const Duration(seconds: 60)),
-              10 - i,
-              rescheduleOnReboot: true,
-              exact: true,
-              createSilenceNotification);
           await AndroidAlarmManager.cancel(100 - i);
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleStart.values.toList()[i])
@@ -1415,14 +1404,6 @@ class _HomeState extends State<Home> {
       for (int i = 0; i < 5; i++) {
         if (DateTime.parse(scheduleStart.values.toList()[i])
             .isAfter(DateTime.now())) {
-          await AndroidAlarmManager.cancel(10 - i);
-          await AndroidAlarmManager.oneShotAt(
-              DateTime.parse(scheduleStart.values.toList()[i])
-                  .subtract(const Duration(seconds: 60)),
-              10 - i,
-              rescheduleOnReboot: true,
-              exact: true,
-              createSilenceNotification);
           await AndroidAlarmManager.cancel(100 - i);
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleStart.values.toList()[i]),
@@ -1442,15 +1423,6 @@ class _HomeState extends State<Home> {
         }
         if (DateTime.parse(scheduleStart.values.toList()[i])
             .isBefore(DateTime.now())) {
-          await AndroidAlarmManager.cancel(10 - i);
-          await AndroidAlarmManager.oneShotAt(
-              DateTime.parse(scheduleStart.values.toList()[i])
-                  .add(const Duration(days: 1))
-                  .subtract(const Duration(seconds: 60)),
-              10 - i,
-              rescheduleOnReboot: true,
-              exact: true,
-              createSilenceNotification);
           await AndroidAlarmManager.cancel(100 - i);
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleStart.values.toList()[i])

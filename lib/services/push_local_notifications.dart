@@ -43,8 +43,50 @@ class LocalNotifications {
     return const NotificationDetails(android: androidNotificationDetails);
   }
 
-  Future<void> showNotification({title, body}) async {
-    await localnotification.show(0, title, body, await _notificationDetails());
+  Future<void> showNotificationBackground({title, body}) async {
+    await localnotification.show(
+      888,
+      title,
+      body,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+            'my_foreground', 'MY FOREGROUND SERVICE',
+            icon: 'ic_bg_service_small',
+            ongoing: true,
+            enableVibration: false,
+            playSound: false,
+            color: Color.fromARGB(255, 7, 64, 111),
+            colorized: true,
+            showWhen: false,
+            ticker: '',
+            visibility: NotificationVisibility.secret,
+            channelShowBadge: false,
+            number: 0),
+      ),
+    );
+  }
+
+  Future<void> showNotificationSilence({title, body}) async {
+    await localnotification.show(
+      888,
+      title,
+      body,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+            'my_foreground', 'MY FOREGROUND SERVICE',
+            icon: 'ic_bg_service_small',
+            ongoing: true,
+            enableVibration: false,
+            playSound: false,
+            color: Color.fromARGB(255, 0, 0, 0),
+            colorized: true,
+            showWhen: false,
+            ticker: '',
+            visibility: NotificationVisibility.secret,
+            channelShowBadge: false,
+            number: 0),
+      ),
+    );
   }
 
   Future<void> cancelNotification() async {
