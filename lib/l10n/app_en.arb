@@ -30,7 +30,7 @@
     "doNotDistrubTitle": "Do Not Disturb access required",
     "doNotDistrubBody": "The app requires the Do Not Disturb access to function.",
     "notificationTitle":"Prayer Time Silencer",
-    "notificationBody": "Your device will be silenced in 5 minutes",
+    "notificationBody": "Your device will be silenced shortly",
     "notificationTitleBackground":"Prayer Time Silencer",
     "notificationBodyBackground": "Scheduling your next times of silence",
     "ok": "Ok",

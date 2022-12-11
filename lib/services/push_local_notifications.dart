@@ -36,7 +36,9 @@ class LocalNotifications {
             timeoutAfter: 300000,
             color: Color.fromARGB(255, 7, 64, 111),
             channelShowBadge: false,
-            playSound: false);
+            playSound: false,
+            enableVibration: false,
+            number: 0);
 
     return const NotificationDetails(android: androidNotificationDetails);
   }

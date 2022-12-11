@@ -16,7 +16,7 @@ class _LanguageSettingState extends State<LanguageSetting> {
       backgroundColor: Colors.grey[900],
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.language),
-        backgroundColor: Color.fromARGB(255, 7, 64, 111),
+        backgroundColor: const Color.fromARGB(255, 7, 64, 111),
         centerTitle: true,
       ),
       body: ListView(

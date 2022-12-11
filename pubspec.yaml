@@ -56,7 +56,6 @@ dependencies:
   workmanager: ^0.5.1
   android_alarm_manager_plus: ^2.1.0
   flutter_native_timezone: ^2.0.0
-  simple_animations: ^5.0.0+3
   numberpicker: ^2.1.1
 
   flutter_localizations:

@@ -74,13 +74,13 @@ class _SettingsState extends State<Corrections> {
         appBar: AppBar(
             title: Text(AppLocalizations.of(context)!.corrections),
             centerTitle: true,
-            backgroundColor: Color.fromARGB(255, 7, 64, 111)),
+            backgroundColor: const Color.fromARGB(255, 7, 64, 111)),
         body: Column(children: [
           Padding(
             padding: const EdgeInsets.all(18.0),
             child: Card(
               shadowColor: Colors.blue[800],
-              color: Color.fromARGB(255, 7, 64, 111),
+              color: const Color.fromARGB(255, 7, 64, 111),
               child: Center(
                 child: Padding(
                   padding: const EdgeInsets.all(18.0),
@@ -110,7 +110,7 @@ class _SettingsState extends State<Corrections> {
                 children: [
                   Card(
                     shadowColor: Colors.blue[800],
-                    color: Color.fromARGB(255, 7, 64, 111),
+                    color: const Color.fromARGB(255, 7, 64, 111),
                     child: Container(
                       margin: const EdgeInsets.fromLTRB(28.0, 8.0, 28.0, 8.0),
                       child: Text(
@@ -138,7 +138,7 @@ class _SettingsState extends State<Corrections> {
                           children: [
                             Expanded(
                               child: Card(
-                                color: Color.fromARGB(255, 7, 64, 111),
+                                color: const Color.fromARGB(255, 7, 64, 111),
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(70.0)),
                                 child: Padding(
@@ -195,7 +195,7 @@ class _SettingsState extends State<Corrections> {
                 children: [
                   Card(
                     shadowColor: Colors.blue[800],
-                    color: Color.fromARGB(255, 7, 64, 111),
+                    color: const Color.fromARGB(255, 7, 64, 111),
                     child: Container(
                       margin: const EdgeInsets.fromLTRB(28.0, 8.0, 28.0, 8.0),
                       child: Text(
@@ -223,7 +223,7 @@ class _SettingsState extends State<Corrections> {
                           children: [
                             Expanded(
                               child: Card(
-                                color: Color.fromARGB(255, 7, 64, 111),
+                                color: const Color.fromARGB(255, 7, 64, 111),
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(70.0)),
                                 child: Padding(
@@ -281,7 +281,7 @@ class _SettingsState extends State<Corrections> {
                 children: [
                   Card(
                     shadowColor: Colors.blue[800],
-                    color: Color.fromARGB(255, 7, 64, 111),
+                    color: const Color.fromARGB(255, 7, 64, 111),
                     child: Container(
                       margin: const EdgeInsets.fromLTRB(28.0, 8.0, 28.0, 8.0),
                       child: Text(
@@ -309,7 +309,7 @@ class _SettingsState extends State<Corrections> {
                           children: [
                             Expanded(
                               child: Card(
-                                color: Color.fromARGB(255, 7, 64, 111),
+                                color: const Color.fromARGB(255, 7, 64, 111),
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(70.0)),
                                 child: Padding(
@@ -366,7 +366,7 @@ class _SettingsState extends State<Corrections> {
                 children: [
                   Card(
                     shadowColor: Colors.blue[800],
-                    color: Color.fromARGB(255, 7, 64, 111),
+                    color: const Color.fromARGB(255, 7, 64, 111),
                     child: Container(
                       margin: const EdgeInsets.fromLTRB(28.0, 8.0, 28.0, 8.0),
                       child: Text(
@@ -394,7 +394,7 @@ class _SettingsState extends State<Corrections> {
                           children: [
                             Expanded(
                               child: Card(
-                                color: Color.fromARGB(255, 7, 64, 111),
+                                color: const Color.fromARGB(255, 7, 64, 111),
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(70.0)),
                                 child: Padding(
@@ -454,7 +454,7 @@ class _SettingsState extends State<Corrections> {
                 children: [
                   Card(
                     shadowColor: Colors.blue[800],
-                    color: Color.fromARGB(255, 7, 64, 111),
+                    color: const Color.fromARGB(255, 7, 64, 111),
                     child: Container(
                       margin: const EdgeInsets.fromLTRB(28.0, 8.0, 28.0, 8.0),
                       child: Text(
@@ -482,7 +482,7 @@ class _SettingsState extends State<Corrections> {
                           children: [
                             Expanded(
                               child: Card(
-                                color: Color.fromARGB(255, 7, 64, 111),
+                                color: const Color.fromARGB(255, 7, 64, 111),
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(70.0)),
                                 child: Padding(

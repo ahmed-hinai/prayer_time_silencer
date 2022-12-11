@@ -32,15 +32,15 @@ class TimingsLocal {
       final contents = await file.readAsString();
       data = jsonDecode(contents);
       prayers['Fajr'] = DateTime.parse(
-          '$year-$month-$day ${data[day]['timings']['Fajr'].substring(0, 5)}');
+          '$year-${month.toString().length < 2 ? month.toString().padLeft(2, '0'.replaceAll('"', '')) : month}-${day.toString().length < 2 ? day.toString().padLeft(2, '0'.replaceAll('"', '')) : day} ${data[day - 1]['timings']['Fajr'].substring(0, 5)}');
       prayers['Dhuhr'] = DateTime.parse(
-          '$year-$month-$day ${data[day]['timings']['Dhuhr'].substring(0, 5)}');
+          '$year-${month.toString().length < 2 ? month.toString().padLeft(2, '0'.replaceAll('"', '')) : month}-${day.toString().length < 2 ? day.toString().padLeft(2, '0'.replaceAll('"', '')) : day} ${data[day - 1]['timings']['Dhuhr'].substring(0, 5)}');
       prayers['Asr'] = DateTime.parse(
-          '$year-$month-$day ${data[day]['timings']['Asr'].substring(0, 5)}');
+          '$year-${month.toString().length < 2 ? month.toString().padLeft(2, '0'.replaceAll('"', '')) : month}-${day.toString().length < 2 ? day.toString().padLeft(2, '0'.replaceAll('"', '')) : day} ${data[day - 1]['timings']['Asr'].substring(0, 5)}');
       prayers['Maghrib'] = DateTime.parse(
-          '$year-$month-$day ${data[day]['timings']['Maghrib'].substring(0, 5)}');
+          '$year-${month.toString().length < 2 ? month.toString().padLeft(2, '0'.replaceAll('"', '')) : month}-${day.toString().length < 2 ? day.toString().padLeft(2, '0'.replaceAll('"', '')) : day} ${data[day - 1]['timings']['Maghrib'].substring(0, 5)}');
       prayers['Isha'] = DateTime.parse(
-          '$year-$month-$day ${data[day]['timings']['Isha'].substring(0, 5)}');
+          '$year-${month.toString().length < 2 ? month.toString().padLeft(2, '0'.replaceAll('"', '')) : month}-${day.toString().length < 2 ? day.toString().padLeft(2, '0'.replaceAll('"', '')) : day} ${data[day - 1]['timings']['Isha'].substring(0, 5)}');
     } catch (e) {
       //print(e);
     }

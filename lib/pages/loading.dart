@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:prayer_time_silencer/services/get_prayer_times_local.dart';
+import 'package:prayer_time_silencer/services/get_prayer_times.dart';
 import 'package:prayer_time_silencer/services/silence_scheduler.dart';
+import 'package:prayer_time_silencer/services/wait_and_prewait_store.dart';
 
 class Loading extends StatefulWidget {
   const Loading({super.key});
@@ -12,36 +13,9 @@ class Loading extends StatefulWidget {
 }
 
 class _LoadingState extends State<Loading> {
-  Map lastKnownStartSchedule = {};
-  Map lastKnownEndSchedule = {};
   void setupHome() async {
-    try {
-      var start = await ScheduleStorageStart().readSchedule();
-      var end = await ScheduleStorageEnd().readSchedule();
-
-      for (var key in start.keys) {
-        lastKnownStartSchedule[key] = start[key];
-        lastKnownEndSchedule[key] = end[key];
-      }
-
-      TimingsLocal localinstance = TimingsLocal(
-          day: DateTime.now().day,
-          month: DateTime.now().month,
-          year: DateTime.now().year);
-      await localinstance.getTimings();
-      var lastKnownPrayers = localinstance.prayers;
-      // //print(lastKnownPrayers);
-
-      await Future.delayed(Duration(milliseconds: 2000));
-      Navigator.pushReplacementNamed(context, '/home', arguments: {
-        'lastKnownPrayers': lastKnownPrayers,
-        'lastKnownStartSchedule': lastKnownStartSchedule,
-        'lastKnownEndSchedule': lastKnownEndSchedule,
-      });
-    } catch (e) {
-      await Future.delayed(Duration(seconds: 2));
-      Navigator.pushReplacementNamed(context, '/home');
-    }
+    await Future.delayed(const Duration(milliseconds: 2000));
+    Navigator.pushReplacementNamed(context, '/home');
   }
 
   @override

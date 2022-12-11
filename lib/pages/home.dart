@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:prayer_time_silencer/main.dart';
 import 'package:flutter/material.dart';
@@ -10,13 +9,66 @@ import 'package:prayer_time_silencer/services/get_prayer_times_local.dart';
 import 'package:prayer_time_silencer/services/silence_scheduler.dart';
 import 'package:prayer_time_silencer/services/corrections_store.dart';
 import 'package:prayer_time_silencer/services/wait_and_prewait_store.dart';
+import 'package:prayer_time_silencer/services/push_local_notifications.dart';
+import 'package:prayer_time_silencer/services/set_device_silent.dart';
 import 'package:sound_mode/permission_handler.dart';
 import 'package:numberpicker/numberpicker.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:open_settings/open_settings.dart';
-
+import 'package:workmanager/workmanager.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter_background_service_android/flutter_background_service_android.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+@pragma('vm:entry-point')
+void createSilence() async {
+  await MuteSystemSounds().muteSystemSounds();
+}
+
+@pragma('vm:entry-point')
+void createSilenceNotification() async {
+  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  final preferred = widgetsBinding.window.locales;
+  const supported = AppLocalizations.supportedLocales;
+  final locale = basicLocaleListResolution(preferred, supported);
+  final l10n = await AppLocalizations.delegate.load(locale);
+  await LocalNotifications().showNotification(
+      title: l10n.notificationTitle, body: l10n.notificationBody);
+}
+
+@pragma('vm:entry-point')
+void disableSilence() async {
+  await LocalNotifications().cancelNotification();
+  await MuteSystemSounds().enableSystemSounds();
+}
+
+const Periodic6HourSchedulingTask =
+    "org.ahmedhinai.prayer_time_silencer.Periodic6HourSchedulingTask";
+
+@pragma(
+    'vm:entry-point') // Mandatory if the App is obfuscated or using Flutter 3.1+
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    switch (task) {
+      case Periodic6HourSchedulingTask:
+        try {
+          switch (MyAppState.isSchedulingON) {
+            case (true):
+              // createSilenceBackgroundNotification();
+              _HomeState().scheduleSilence();
+              //print("$Periodic1HourSchedulingTask was executed");
+              return Future.value(true);
+          }
+        } catch (e) {
+          //print(e);
+          return Future.value(false);
+        }
+    }
+
+    return Future.value(true);
+  });
+}
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -28,8 +80,8 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  bool _enabled = true;
-  int _status = 0;
+  final bool _enabled = true;
+  final int _status = 0;
   final int _currentValueStart = 5;
   final int _currentValueEnd = 40;
   final List<DateTime> _events = [];
@@ -80,9 +132,8 @@ class _HomeState extends State<Home> {
     // initPlatformState();
     getValueStartMap();
     getValueEndMap();
-    getLocaltimings();
     Future.delayed(Duration.zero, () {
-      this.secondComings();
+      secondComings();
     });
   }
 
@@ -93,28 +144,33 @@ class _HomeState extends State<Home> {
 
   void secondComings() async {
     try {
-      Map itsComingsHome = ModalRoute.of(context)!.settings.arguments as Map;
-      //print('this is itsComingsHome $itsComingsHome');
-      var prayersL = await itsComingsHome['lastKnownPrayers'];
+      await getLocaltimings();
+      if (scheduleStart.values.toList().length > 2) {
+        setState(() {
+          gpsvisible = false;
+          timingsvisible = false;
+          timingsvisible2 = true;
+          schedulevisible = false;
+          confirmvisible = true;
+        });
 
-      var scheduleStartL = await itsComingsHome['lastKnownStartSchedule'];
-      var scheduleEndL = itsComingsHome['lastKnownEndSchedule'];
-      //print('this is scheduleStartL $scheduleStartL');
-      setState(() {
-        for (var key in prayersL.keys) {
-          oldPrayers[key] = DateFormat.Hm().format(prayersL[key]!);
-          scheduleStart[key] = scheduleStartL[key];
-          scheduleEnd[key] = scheduleEndL[key];
-        }
-
-        gpsvisible = false;
-        timingsvisible = false;
-        timingsvisible2 = true;
-        schedulevisible = false;
-        confirmvisible = true;
-      });
+        scheduleSilence();
+        Workmanager().registerPeriodicTask(
+          Periodic6HourSchedulingTask,
+          Periodic6HourSchedulingTask,
+          frequency: const Duration(hours: 6),
+        );
+      } else {
+        setState(() {
+          gpsvisible = true;
+          timingsvisible = false;
+          timingsvisible2 = false;
+          schedulevisible = false;
+          confirmvisible = false;
+        });
+      }
     } catch (e) {
-      //print('hello? $e');
+      print('hello? $e');
       setState(() {
         gpsvisible = true;
         timingsvisible = false;
@@ -134,7 +190,7 @@ class _HomeState extends State<Home> {
   final int month = DateTime.now().month;
   final int year = DateTime.now().year;
   var icon = const Icon(Icons.notifications);
-  bool gpsvisible = true;
+  bool gpsvisible = false;
   bool timingsvisible = false;
   bool timingsvisible2 = false;
   bool schedulevisible = false;
@@ -143,11 +199,11 @@ class _HomeState extends State<Home> {
   static String notificationTitle = "Prayer Time Silencer";
   static String notificationBody = "Your device will be silenced in 5 minutes.";
   Map<String, dynamic> oldPrayers = {
-    'Fajr': DateFormat.Hm().format(DateTime.now()),
-    'Dhuhr': DateFormat.Hm().format(DateTime.now()),
-    'Asr': DateFormat.Hm().format(DateTime.now()),
-    'Maghrib': DateFormat.Hm().format(DateTime.now()),
-    'Isha': DateFormat.Hm().format(DateTime.now())
+    'Fajr': '',
+    'Dhuhr': '',
+    'Asr': '',
+    'Maghrib': '',
+    'Isha': ''
   };
 
   List localizedPrayerNames = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
@@ -156,12 +212,15 @@ class _HomeState extends State<Home> {
   Map<String, String> scheduleStart = {};
   Map<String, String> scheduleEnd = {};
 
-  void getLocaltimings() async {
+  Future<void> getLocaltimings() async {
     try {
       TimingsLocal localinstance =
           TimingsLocal(day: day, month: month, year: year);
       await localinstance.getTimings();
       prayers = localinstance.prayers;
+      for (var key in prayers.keys) {
+        oldPrayers[key] = DateFormat.Hm().format(prayers[key]!);
+      }
       CreateSchedule getSchedule = CreateSchedule(
           prayers: prayers,
           prewait: currentValueStartMap,
@@ -215,7 +274,7 @@ class _HomeState extends State<Home> {
       child: Scaffold(
         resizeToAvoidBottomInset: false,
         drawer: Drawer(
-          backgroundColor: Color.fromARGB(255, 7, 64, 111),
+          backgroundColor: const Color.fromARGB(255, 7, 64, 111),
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Column(
@@ -343,7 +402,7 @@ class _HomeState extends State<Home> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(18.0, 1.0, 18.0, 1.0),
                   child: Visibility(
-                      visible: timingsvisible!,
+                      visible: timingsvisible,
                       child: Transform.scale(
                         scale: .9,
                         child: ListView.builder(
@@ -381,7 +440,7 @@ class _HomeState extends State<Home> {
                                               Expanded(
                                                 flex: 8,
                                                 child: Card(
-                                                  color: Color.fromARGB(
+                                                  color: const Color.fromARGB(
                                                       255, 7, 64, 111),
                                                   shape: RoundedRectangleBorder(
                                                       borderRadius:
@@ -495,7 +554,7 @@ class _HomeState extends State<Home> {
                                               Expanded(
                                                 flex: 8,
                                                 child: Card(
-                                                  color: Color.fromARGB(
+                                                  color: const Color.fromARGB(
                                                       255, 7, 64, 111),
                                                   shape: RoundedRectangleBorder(
                                                       borderRadius:
@@ -531,7 +590,7 @@ class _HomeState extends State<Home> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(18.0, 1.0, 18.0, 1.0),
                   child: Visibility(
-                      visible: timingsvisible2!,
+                      visible: timingsvisible2,
                       child: Transform.scale(
                         scale: .9,
                         child: ListView.builder(
@@ -550,7 +609,7 @@ class _HomeState extends State<Home> {
                                         borderRadius: BorderRadius.circular(70),
                                         constraints: BoxConstraints.expand(
                                             width: constraints.maxWidth / 1.03),
-                                        isSelected: [false],
+                                        isSelected: const [false],
                                         onPressed: (indexx) {
                                           setState((() => null));
                                         },
@@ -562,7 +621,7 @@ class _HomeState extends State<Home> {
                                               Expanded(
                                                 flex: 8,
                                                 child: Card(
-                                                  color: Color.fromARGB(
+                                                  color: const Color.fromARGB(
                                                       255, 7, 64, 111),
                                                   shape: RoundedRectangleBorder(
                                                       borderRadius:
@@ -676,7 +735,7 @@ class _HomeState extends State<Home> {
                                               Expanded(
                                                 flex: 8,
                                                 child: Card(
-                                                  color: Color.fromARGB(
+                                                  color: const Color.fromARGB(
                                                       255, 7, 64, 111),
                                                   shape: RoundedRectangleBorder(
                                                       borderRadius:
@@ -710,7 +769,7 @@ class _HomeState extends State<Home> {
                       )),
                 ),
                 Visibility(
-                  visible: gpsvisible!,
+                  visible: gpsvisible,
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(8.0, 200.0, 8.0, 230.0),
                     child: Column(
@@ -726,7 +785,7 @@ class _HomeState extends State<Home> {
                         //   size: 30.0,
                         // ),
                         IconButton(
-                          color: Color.fromARGB(255, 7, 64, 111),
+                          color: const Color.fromARGB(255, 7, 64, 111),
                           onPressed: () async {
                             notificationTitle =
                                 AppLocalizations.of(context)!.doNotDistrubTitle;
@@ -801,7 +860,7 @@ class _HomeState extends State<Home> {
                 Visibility(
                   maintainAnimation: true,
                   maintainState: true,
-                  visible: schedulevisible!,
+                  visible: schedulevisible,
                   child: Transform.scale(
                     scale: .9,
                     child: Padding(
@@ -902,7 +961,7 @@ class _HomeState extends State<Home> {
                 Visibility(
                   maintainAnimation: true,
                   maintainState: true,
-                  visible: schedulevisible!,
+                  visible: schedulevisible,
                   child: Transform.scale(
                     scale: .9,
                     child: Padding(
@@ -946,7 +1005,7 @@ class _HomeState extends State<Home> {
                 Visibility(
                   maintainAnimation: true,
                   maintainState: true,
-                  visible: schedulevisible!,
+                  visible: schedulevisible,
                   child: Transform.scale(
                     scale: .9,
                     child: Padding(
@@ -972,7 +1031,7 @@ class _HomeState extends State<Home> {
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor:
-                                      Color.fromARGB(255, 7, 64, 111),
+                                      const Color.fromARGB(255, 7, 64, 111),
                                   elevation: 20.0,
                                 ),
                                 onPressed: () async {
@@ -989,11 +1048,11 @@ class _HomeState extends State<Home> {
                                           timingsvisible2 = true;
                                           confirmvisible = true;
                                           scheduleSilence();
-                                          // Workmanager().registerPeriodicTask(
-                                          //   Periodic1HourSchedulingTask,
-                                          //   Periodic1HourSchedulingTask,
-                                          //   frequency: const Duration(hours: 2),
-                                          // );
+                                          Workmanager().registerPeriodicTask(
+                                            Periodic6HourSchedulingTask,
+                                            Periodic6HourSchedulingTask,
+                                            frequency: const Duration(hours: 6),
+                                          );
                                           break;
                                         case (false):
                                           ScaffoldMessenger.of(context)
@@ -1035,13 +1094,13 @@ class _HomeState extends State<Home> {
                                               title: Text(
                                                 AppLocalizations.of(context)!
                                                     .doNotDistrubTitle,
-                                                style: TextStyle(
+                                                style: const TextStyle(
                                                     color: Colors.white),
                                               ),
                                               content: Text(
                                                   AppLocalizations.of(context)!
                                                       .doNotDistrubBody,
-                                                  style: TextStyle(
+                                                  style: const TextStyle(
                                                       color: Colors.white)),
                                             ));
                                     // Opens the Do Not Disturb Access settings to grant the access
@@ -1063,7 +1122,7 @@ class _HomeState extends State<Home> {
                   ),
                 ),
                 Visibility(
-                    visible: schedulevisible!,
+                    visible: schedulevisible,
                     child: Transform.scale(
                       scale: .9,
                       child: SafeArea(
@@ -1124,13 +1183,13 @@ class _HomeState extends State<Home> {
                       ),
                     )),
                 Visibility(
-                    visible: confirmvisible!,
+                    visible: confirmvisible,
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(60, 0, 60, 8),
                       child: Column(
                         children: [
                           Card(
-                            color: Color.fromARGB(255, 7, 64, 111),
+                            color: const Color.fromARGB(255, 7, 64, 111),
                             child: Padding(
                               padding:
                                   const EdgeInsets.fromLTRB(58, 58, 58, 58),
@@ -1153,7 +1212,7 @@ class _HomeState extends State<Home> {
                     children: [
                       Expanded(
                         child: Visibility(
-                          visible: confirmvisible!,
+                          visible: confirmvisible,
                           child: Padding(
                             padding: const EdgeInsets.all(8),
                             child: Tooltip(
@@ -1162,7 +1221,7 @@ class _HomeState extends State<Home> {
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                     backgroundColor:
-                                        Color.fromARGB(255, 7, 64, 111)),
+                                        const Color.fromARGB(255, 7, 64, 111)),
                                 onPressed: () async {
                                   setState(() {
                                     gpsvisible = false;
@@ -1187,7 +1246,7 @@ class _HomeState extends State<Home> {
                       ),
                       Expanded(
                         child: Visibility(
-                          visible: confirmvisible!,
+                          visible: confirmvisible,
                           child: Padding(
                             padding: const EdgeInsets.all(8),
                             child: Tooltip(
@@ -1196,7 +1255,7 @@ class _HomeState extends State<Home> {
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                     backgroundColor:
-                                        Color.fromARGB(255, 7, 64, 111)),
+                                        const Color.fromARGB(255, 7, 64, 111)),
                                 onPressed: () async {
                                   GetLocationFromGPS newLocation =
                                       GetLocationFromGPS();
@@ -1284,14 +1343,24 @@ class _HomeState extends State<Home> {
       for (int i = 0; i < 5; i++) {
         if (DateTime.parse(scheduleStart.values.toList()[i])
             .isAfter(DateTime.now())) {
+          await AndroidAlarmManager.cancel(10 - i);
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleStart.values.toList()[i])
-                  .subtract(const Duration(minutes: 5)),
+                  .subtract(Duration(seconds: 60)),
+              10 - i,
+              rescheduleOnReboot: true,
+              exact: true,
+              createSilenceNotification);
+          await AndroidAlarmManager.cancel(100 - i);
+
+          await AndroidAlarmManager.oneShotAt(
+              DateTime.parse(scheduleStart.values.toList()[i]),
               100 - i,
               rescheduleOnReboot: true,
               exact: true,
               createSilence);
 
+          await AndroidAlarmManager.cancel(1000 - i);
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleEnd.values.toList()[i]),
               1000 - i,
@@ -1303,19 +1372,28 @@ class _HomeState extends State<Home> {
         }
         if (DateTime.parse(scheduleStart.values.toList()[i])
             .isBefore(DateTime.now())) {
+          await AndroidAlarmManager.cancel(10 - i);
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleStart.values.toList()[i])
                   .add(const Duration(days: 1))
-                  .subtract(const Duration(minutes: 5)),
-              200 - i,
+                  .subtract(const Duration(seconds: 60)),
+              10 - i,
+              rescheduleOnReboot: true,
+              exact: true,
+              createSilenceNotification);
+          await AndroidAlarmManager.cancel(100 - i);
+          await AndroidAlarmManager.oneShotAt(
+              DateTime.parse(scheduleStart.values.toList()[i])
+                  .add(const Duration(days: 1)),
+              100 - i,
               rescheduleOnReboot: true,
               exact: true,
               createSilence);
-
+          await AndroidAlarmManager.cancel(1000 - i);
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleEnd.values.toList()[i])
                   .add(const Duration(days: 1)),
-              2000 - i,
+              1000 - i,
               rescheduleOnReboot: true,
               exact: true,
               disableSilence);
@@ -1337,14 +1415,22 @@ class _HomeState extends State<Home> {
       for (int i = 0; i < 5; i++) {
         if (DateTime.parse(scheduleStart.values.toList()[i])
             .isAfter(DateTime.now())) {
+          await AndroidAlarmManager.cancel(10 - i);
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleStart.values.toList()[i])
-                  .subtract(const Duration(minutes: 5)),
+                  .subtract(const Duration(seconds: 60)),
+              10 - i,
+              rescheduleOnReboot: true,
+              exact: true,
+              createSilenceNotification);
+          await AndroidAlarmManager.cancel(100 - i);
+          await AndroidAlarmManager.oneShotAt(
+              DateTime.parse(scheduleStart.values.toList()[i]),
               100 - i,
               rescheduleOnReboot: true,
               exact: true,
               createSilence);
-
+          await AndroidAlarmManager.cancel(1000 - i);
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleEnd.values.toList()[i]),
               1000 - i,
@@ -1356,19 +1442,28 @@ class _HomeState extends State<Home> {
         }
         if (DateTime.parse(scheduleStart.values.toList()[i])
             .isBefore(DateTime.now())) {
+          await AndroidAlarmManager.cancel(10 - i);
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleStart.values.toList()[i])
                   .add(const Duration(days: 1))
-                  .subtract(const Duration(minutes: 5)),
-              200 - i,
+                  .subtract(const Duration(seconds: 60)),
+              10 - i,
+              rescheduleOnReboot: true,
+              exact: true,
+              createSilenceNotification);
+          await AndroidAlarmManager.cancel(100 - i);
+          await AndroidAlarmManager.oneShotAt(
+              DateTime.parse(scheduleStart.values.toList()[i])
+                  .add(const Duration(days: 1)),
+              100 - i,
               rescheduleOnReboot: true,
               exact: true,
               createSilence);
-
+          await AndroidAlarmManager.cancel(1000 - i);
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleEnd.values.toList()[i])
                   .add(const Duration(days: 1)),
-              2000 - i,
+              1000 - i,
               rescheduleOnReboot: true,
               exact: true,
               disableSilence);

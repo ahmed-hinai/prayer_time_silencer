@@ -11,7 +11,7 @@ class WaitAndPreWaitStoreStart {
 
   Future<File> get _localFile async {
     final path = await _localPath;
-    return File('$path/waitAndPreWaitStart.json');
+    return File('$path/waitStart.json');
   }
 
   Future<dynamic> readWaitAndPreWait() async {
@@ -44,7 +44,7 @@ class WaitAndPreWaitStoreEnd {
 
   Future<File> get _localFile async {
     final path = await _localPath;
-    return File('$path/waitAndPreWaitEnd.json');
+    return File('$path/waitEnd.json');
   }
 
   Future<dynamic> readWaitAndPreWait() async {

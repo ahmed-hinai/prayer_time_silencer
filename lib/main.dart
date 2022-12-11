@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:ui';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:prayer_time_silencer/pages/home.dart';
 import 'package:prayer_time_silencer/pages/loading.dart';
@@ -20,51 +19,7 @@ import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_background_service_android/flutter_background_service_android.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-@pragma('vm:entry-point')
-void createSilence() async {
-  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-  final preferred = widgetsBinding.window.locales;
-  const supported = AppLocalizations.supportedLocales;
-  final locale = basicLocaleListResolution(preferred, supported);
-  final l10n = await AppLocalizations.delegate.load(locale);
-  await LocalNotifications().showNotification(
-      title: l10n.notificationTitle, body: l10n.notificationBody);
-  await Future.delayed(const Duration(minutes: 5));
-  await MuteSystemSounds().muteSystemSounds();
-}
 
-@pragma('vm:entry-point')
-void disableSilence() async {
-  await LocalNotifications().cancelNotification();
-  await MuteSystemSounds().enableSystemSounds();
-}
-
-const Periodic1HourSchedulingTask =
-    "com.example.prayer_time_silencer.Periodic1HourSchedulingTask";
-
-@pragma(
-    'vm:entry-point') // Mandatory if the App is obfuscated or using Flutter 3.1+
-void callbackDispatcher() {
-  Workmanager().executeTask((task, inputData) async {
-    switch (task) {
-      case Periodic1HourSchedulingTask:
-        try {
-          switch (MyAppState.isSchedulingON) {
-            case (true):
-              // createSilenceBackgroundNotification();
-              MyAppState().scheduleSilence();
-              //print("$Periodic1HourSchedulingTask was executed");
-              return Future.value(true);
-          }
-        } catch (e) {
-          //print(e);
-          return Future.value(false);
-        }
-    }
-
-    return Future.value(true);
-  });
-}
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -106,41 +61,20 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     getLocalePref();
     getLocalStoredSchedule();
     getSchedulingPref();
-
-    // initPlatformState();
-    try {} catch (e) {
-      //print(e);
-    }
   }
 
   @override
   void dispose() {
     super.dispose();
-    WidgetsBinding.instance.removeObserver(this);
   }
 
   void setLocale(Locale value) async {
     setState(() {
       _locale = value;
     });
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) async {
-    super.didChangeAppLifecycleState(state);
-
-    if (state == AppLifecycleState.inactive) {
-      await Future.delayed(Duration(milliseconds: 1));
-      //print('detached');
-
-      try {} catch (e) {}
-    }
-    if (state == AppLifecycleState.paused) {}
-    if (state == AppLifecycleState.inactive) {}
   }
 
   @override
@@ -204,54 +138,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     });
   }
 
-  void scheduleSilence() async {
-    try {
-      for (int i = 0; i < 5; i++) {
-        if (DateTime.parse(scheduleStart.values.toList()[i])
-            .isAfter(DateTime.now())) {
-          await AndroidAlarmManager.oneShotAt(
-              DateTime.parse(scheduleStart.values.toList()[i])
-                  .subtract(const Duration(minutes: 5)),
-              100 - i,
-              rescheduleOnReboot: true,
-              exact: true,
-              createSilence);
 
-          await AndroidAlarmManager.oneShotAt(
-              DateTime.parse(scheduleEnd.values.toList()[i]),
-              1000 - i,
-              rescheduleOnReboot: true,
-              exact: true,
-              disableSilence);
-
-          //print('is this working?${scheduleStart.values.toList()[i]}');
-        }
-        if (DateTime.parse(scheduleStart.values.toList()[i])
-            .isBefore(DateTime.now())) {
-          await AndroidAlarmManager.oneShotAt(
-              DateTime.parse(scheduleStart.values.toList()[i])
-                  .add(const Duration(days: 1))
-                  .subtract(const Duration(minutes: 5)),
-              200 - i,
-              rescheduleOnReboot: true,
-              exact: true,
-              createSilence);
-
-          await AndroidAlarmManager.oneShotAt(
-              DateTime.parse(scheduleEnd.values.toList()[i])
-                  .add(const Duration(days: 1)),
-              2000 - i,
-              rescheduleOnReboot: true,
-              exact: true,
-              disableSilence);
-
-          //print('is this working for next day?${DateTime.parse(scheduleStart.values.toList()[i]).add(const Duration(days: 1))}');
-        }
-      }
-    } catch (e) {
-      //print(e);
-    }
-  }
 }
 
 void main() async {
@@ -265,8 +152,6 @@ void main() async {
 
   runApp(const MyApp());
   await initializeService();
-
-  // BackgroundFetch.registerHeadlessTask(backgroundFetchHeadlessTask);
 }
 
 Future<void> initializeService() async {
@@ -280,13 +165,15 @@ Future<void> initializeService() async {
 
   /// OPTIONAL, using custom notification channel id
   const AndroidNotificationChannel channel = AndroidNotificationChannel(
-      'foreground_silence', // id
-      'FOREGROUND SILENCE SERVICE', // title
-      description:
-          'This channel is used for when the app is running in the background.', // description
-      importance: Importance.low,
-      showBadge: false // importance must be at low or higher level
-      );
+    'foreground_silence', // id
+    'FOREGROUND SILENCE SERVICE', // title
+    description:
+        'This channel is used for when the app is running in the background.', // description
+    importance: Importance.low,
+
+    showBadge: false,
+    // importance must be at low or higher level
+  );
 
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
@@ -319,7 +206,7 @@ Future<void> initializeService() async {
     ),
     iosConfiguration: IosConfiguration(
       // auto start service
-      autoStart: true,
+      autoStart: false,
 
       // this will be executed when app is in foreground in separated isolate
       onForeground: onStart,
@@ -337,16 +224,7 @@ Future<void> initializeService() async {
 
 @pragma('vm:entry-point')
 Future<bool> onIosBackground(ServiceInstance service) async {
-  WidgetsFlutterBinding.ensureInitialized();
-  DartPluginRegistrant.ensureInitialized();
-
-  SharedPreferences preferences = await SharedPreferences.getInstance();
-  await preferences.reload();
-  final log = preferences.getStringList('log') ?? <String>[];
-  log.add(DateTime.now().toIso8601String());
-  await preferences.setStringList('log', log);
-
-  return true;
+  return false;
 }
 
 void onDoNothing(ServiceInstance service) async {}
@@ -398,45 +276,17 @@ void onStart(ServiceInstance service) async {
               'my_foreground', 'MY FOREGROUND SERVICE',
               icon: 'ic_bg_service_small',
               ongoing: true,
+              enableVibration: false,
               playSound: false,
               color: Color.fromARGB(255, 7, 64, 111),
               colorized: true,
               showWhen: false,
               ticker: '',
               visibility: NotificationVisibility.secret,
-              channelShowBadge: false),
+              channelShowBadge: false,
+              number: 0),
         ),
       );
-
-      // if you don't using custom notification, uncomment this
-      // service.setForegroundNotificationInfo(
-      //   title: "My App Service",
-      //   content: "Updated at ${DateTime.now()}",
-      // );
     }
   }
-
-  /// you can see this log in logcat
-  // //print('FLUTTER BACKGROUND SERVICE: ${DateTime.now()}');
-
-  // // test using external plugin
-  // final deviceInfo = DeviceInfoPlugin();
-  // String? device;
-  // if (Platform.isAndroid) {
-  //   final androidInfo = await deviceInfo.androidInfo;
-  //   device = androidInfo.model;
-  // }
-
-  // if (Platform.isIOS) {
-  //   final iosInfo = await deviceInfo.iosInfo;
-  //   device = iosInfo.model;
-  // }
-
-  // service.invoke(
-  //   'update',
-  //   {
-  //     "current_date": DateTime.now().toIso8601String(),
-  //     "device": device,
-  //   },
-  // );
 }
