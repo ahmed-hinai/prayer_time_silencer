@@ -266,7 +266,7 @@ class _HomeState extends State<Home> {
   }
 
   final GlobalKey<ScaffoldState> _globalKey = GlobalKey();
-  late bool _drawerIsOpened;
+  bool _drawerIsOpened = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -395,13 +395,18 @@ class _HomeState extends State<Home> {
       onDrawerChanged: (isopened) => _drawerIsOpened = isopened,
       backgroundColor: Colors.grey[900],
       body: WillPopScope(
-        onWillPop: () {
+        onWillPop: () async {
           if (_drawerIsOpened == true) {
             Navigator.of(context).pop(); // close the drawer
-            return Future.value(false); // don't close the app
+            return false; // don't close the app
           }
           // you can return ShowDialog() here instead of Future true
-          return Future.value(true); // close t
+          else if (ModalRoute.of(context)?.settings.name == '/home' &&
+              _drawerIsOpened == false) {
+            pop();
+            return false; // close t
+          }
+          return true;
         },
         child: SafeArea(
           child: ListView(
