@@ -50,7 +50,7 @@ class LocalNotifications {
       body,
       const NotificationDetails(
         android: AndroidNotificationDetails(
-            'my_foreground', 'MY FOREGROUND SERVICE',
+            'foreground_silence', 'FOREGROUND SILENCE SERVICE',
             icon: 'ic_bg_service_small',
             ongoing: true,
             enableVibration: false,
@@ -73,7 +73,7 @@ class LocalNotifications {
       body,
       const NotificationDetails(
         android: AndroidNotificationDetails(
-            'my_foreground', 'MY FOREGROUND SERVICE',
+            'foreground_silence', 'FOREGROUND SILENCE SERVICE',
             icon: 'ic_bg_service_small',
             ongoing: true,
             enableVibration: false,

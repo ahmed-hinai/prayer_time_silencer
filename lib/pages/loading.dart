@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:prayer_time_silencer/services/get_prayer_times.dart';
-import 'package:prayer_time_silencer/services/silence_scheduler.dart';
-import 'package:prayer_time_silencer/services/wait_and_prewait_store.dart';
 
 class Loading extends StatefulWidget {
   const Loading({super.key});

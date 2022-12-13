@@ -18,8 +18,6 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:open_settings/open_settings.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter_background_service_android/flutter_background_service_android.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 @pragma('vm:entry-point')
 void createSilence() async {
@@ -84,6 +82,8 @@ class Home extends StatefulWidget {
 
   static of(BuildContext context) {}
 }
+
+GlobalKey<ScaffoldState> _key = GlobalKey<ScaffoldState>();
 
 class _HomeState extends State<Home> {
   final bool _enabled = true;
@@ -176,7 +176,7 @@ class _HomeState extends State<Home> {
         });
       }
     } catch (e) {
-      print('hello? $e');
+      // print('hello? $e');
       setState(() {
         gpsvisible = true;
         timingsvisible = false;
@@ -265,145 +265,148 @@ class _HomeState extends State<Home> {
     return 0;
   }
 
+  final GlobalKey<ScaffoldState> _globalKey = GlobalKey();
+  late bool _drawerIsOpened;
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        //print('back button pressed');
-        if (ModalRoute.of(context)?.settings.name == '/home') {
-          pop();
-          return false;
-        } else {
-          return true;
-        }
-      },
-      child: Scaffold(
-        resizeToAvoidBottomInset: false,
-        drawer: Drawer(
-          backgroundColor: const Color.fromARGB(255, 7, 64, 111),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    AppLocalizations.of(context)!.enterToRetrievePrayerTimes,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 30,
-                        fontWeight: FontWeight.bold),
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      drawer: Drawer(
+        backgroundColor: const Color.fromARGB(255, 7, 64, 111),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  AppLocalizations.of(context)!.enterToRetrievePrayerTimes,
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(18.0),
+                child: TextField(
+                  onSubmitted: ((text) async {
+                    notificationTitle =
+                        AppLocalizations.of(context)!.doNotDistrubTitle;
+                    notificationBody =
+                        AppLocalizations.of(context)!.doNotDistrubBody;
+                    Navigator.pop(context);
+
+                    try {
+                      GetLocationFromInput newLocation =
+                          GetLocationFromInput(location: text);
+                      await newLocation.getLocationFromUserInput();
+                      latitude = newLocation.latitude;
+                      longitude = newLocation.longitude;
+                      var connectivityResult =
+                          await (Connectivity().checkConnectivity());
+                      if (connectivityResult == ConnectivityResult.none) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text(AppLocalizations.of(context)!
+                                .networkFailMessage)));
+                      }
+                      CorrectionsStorage storedCorrections =
+                          CorrectionsStorage();
+                      var newCorrections =
+                          await storedCorrections.readCorrections();
+                      Timings instance = Timings(
+                          lat: latitude,
+                          long: longitude,
+                          day: day,
+                          month: month,
+                          year: year,
+                          corrections: newCorrections);
+                      await instance.getTimings();
+                      prayers = instance.prayers;
+                      CreateSchedule getSchedule = CreateSchedule(
+                          prayers: prayers,
+                          prewait: currentValueStartMap,
+                          wait: currentValueEndMap);
+                      await getSchedule.createSchedule();
+                      scheduleStart = getSchedule.scheduleStart;
+                      scheduleEnd = getSchedule.scheduleEnd;
+                      setState(() {
+                        for (String key in oldPrayers.keys) {
+                          oldPrayers[key] =
+                              DateFormat.Hm().format(prayers[key]!);
+                          timingsvisible2 = false;
+                          timingsvisible = true;
+                          schedulevisible = true;
+                          confirmvisible = false;
+                          gpsvisible = false;
+                        }
+                      });
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text(
+                              AppLocalizations.of(context)!.failedMessage)));
+                    }
+                  }),
+                  onChanged: (value) {
+                    //print('First text field: $value');
+                  },
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: const OutlineInputBorder(),
+                    hintText: AppLocalizations.of(context)!.enterLocation,
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(18.0),
-                  child: TextField(
-                    onSubmitted: ((text) async {
-                      notificationTitle =
-                          AppLocalizations.of(context)!.doNotDistrubTitle;
-                      notificationBody =
-                          AppLocalizations.of(context)!.doNotDistrubBody;
-                      Navigator.pop(context);
-
-                      try {
-                        GetLocationFromInput newLocation =
-                            GetLocationFromInput(location: text);
-                        await newLocation.getLocationFromUserInput();
-                        latitude = newLocation.latitude;
-                        longitude = newLocation.longitude;
-                        var connectivityResult =
-                            await (Connectivity().checkConnectivity());
-                        if (connectivityResult == ConnectivityResult.none) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: Text(AppLocalizations.of(context)!
-                                  .networkFailMessage)));
-                        }
-                        CorrectionsStorage storedCorrections =
-                            CorrectionsStorage();
-                        var newCorrections =
-                            await storedCorrections.readCorrections();
-                        Timings instance = Timings(
-                            lat: latitude,
-                            long: longitude,
-                            day: day,
-                            month: month,
-                            year: year,
-                            corrections: newCorrections);
-                        await instance.getTimings();
-                        prayers = instance.prayers;
-                        CreateSchedule getSchedule = CreateSchedule(
-                            prayers: prayers,
-                            prewait: currentValueStartMap,
-                            wait: currentValueEndMap);
-                        await getSchedule.createSchedule();
-                        scheduleStart = getSchedule.scheduleStart;
-                        scheduleEnd = getSchedule.scheduleEnd;
-                        setState(() {
-                          for (String key in oldPrayers.keys) {
-                            oldPrayers[key] =
-                                DateFormat.Hm().format(prayers[key]!);
-                            timingsvisible2 = false;
-                            timingsvisible = true;
-                            schedulevisible = true;
-                            confirmvisible = false;
-                            gpsvisible = false;
-                          }
-                        });
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text(
-                                AppLocalizations.of(context)!.failedMessage)));
-                      }
-                    }),
-                    onChanged: (value) {
-                      //print('First text field: $value');
-                    },
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: const OutlineInputBorder(),
-                      hintText: AppLocalizations.of(context)!.enterLocation,
-                    ),
-                  ),
-                )
-              ],
-            ),
+              )
+            ],
           ),
         ),
-        appBar: AppBar(
-          elevation: 1.0,
-          title: const Text(""),
-          centerTitle: true,
-          backgroundColor: Colors.grey[900],
-          actions: [
-            PopupMenuButton<String>(
-              itemBuilder: (BuildContext context) {
-                return {
-                  AppLocalizations.of(context)!.settings,
-                  AppLocalizations.of(context)!.aboutUs
-                }.map((String choice) {
-                  return PopupMenuItem<String>(
-                    value: choice,
-                    child: Text(choice),
-                    onTap: () async {
-                      await Future.delayed(const Duration(milliseconds: 1));
-                      choice == AppLocalizations.of(context)!.aboutUs
-                          ? Navigator.pushNamed(context, '/About us')
-                          : choice == AppLocalizations.of(context)!.settings
-                              ? Navigator.pushNamed(context, '/Settings')
-                              : () {};
-                    },
-                  );
-                }).toList();
-              },
-            ),
-          ],
-        ),
+      ),
+      appBar: AppBar(
+        elevation: 1.0,
+        title: const Text(""),
+        centerTitle: true,
         backgroundColor: Colors.grey[900],
-        body: Center(
-          child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        actions: [
+          PopupMenuButton<String>(
+            itemBuilder: (BuildContext context) {
+              return {
+                AppLocalizations.of(context)!.settings,
+                AppLocalizations.of(context)!.aboutUs
+              }.map((String choice) {
+                return PopupMenuItem<String>(
+                  value: choice,
+                  child: Text(choice),
+                  onTap: () async {
+                    await Future.delayed(const Duration(milliseconds: 1));
+                    choice == AppLocalizations.of(context)!.aboutUs
+                        ? Navigator.pushNamed(context, '/About us')
+                        : choice == AppLocalizations.of(context)!.settings
+                            ? Navigator.pushNamed(context, '/Settings')
+                            : () {};
+                  },
+                );
+              }).toList();
+            },
+          ),
+        ],
+      ),
+      onDrawerChanged: (isopened) => _drawerIsOpened = isopened,
+      backgroundColor: Colors.grey[900],
+      body: WillPopScope(
+        onWillPop: () {
+          if (_drawerIsOpened == true) {
+            Navigator.of(context).pop(); // close the drawer
+            return Future.value(false); // don't close the app
+          }
+          // you can return ShowDialog() here instead of Future true
+          return Future.value(true); // close t
+        },
+        child: SafeArea(
+          child: ListView(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
               children: [
                 Padding(
                   padding: const EdgeInsets.fromLTRB(18.0, 1.0, 18.0, 1.0),
@@ -417,7 +420,7 @@ class _HomeState extends State<Home> {
                             itemCount: prayers.length,
                             itemBuilder: ((context, index) {
                               return Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisAlignment: MainAxisAlignment.start,
                                   children: [
                                     Container(child: LayoutBuilder(
                                         builder: (context, constraints) {
@@ -777,19 +780,9 @@ class _HomeState extends State<Home> {
                 Visibility(
                   visible: gpsvisible,
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(8.0, 200.0, 8.0, 230.0),
+                    padding: const EdgeInsets.fromLTRB(8.0, 100.0, 8.0, 8.0),
                     child: Column(
                       children: [
-                        // Text(
-                        //   AppLocalizations.of(context)!.beginHere,
-                        //   style: const TextStyle(
-                        //       color: Colors.white, fontSize: 18.0),
-                        // ),
-                        // const Icon(
-                        //   Icons.arrow_downward,
-                        //   color: Colors.white,
-                        //   size: 30.0,
-                        // ),
                         IconButton(
                           color: const Color.fromARGB(255, 7, 64, 111),
                           onPressed: () async {
@@ -839,6 +832,7 @@ class _HomeState extends State<Home> {
                                 for (String key in oldPrayers.keys) {
                                   oldPrayers[key] =
                                       DateFormat.Hm().format(prayers[key]!);
+
                                   gpsvisible = false;
                                   timingsvisible = true;
                                   schedulevisible = true;
@@ -874,12 +868,11 @@ class _HomeState extends State<Home> {
                       child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Flexible(
+                            Expanded(
                               child: Card(
                                 color: Colors.grey[600],
                                 child: Container(
                                   child: NumberPicker(
-                                    itemWidth: 168.0,
                                     textStyle: const TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold),
@@ -919,7 +912,7 @@ class _HomeState extends State<Home> {
                                 ),
                               ),
                             ),
-                            Flexible(
+                            Expanded(
                               child: Card(
                                 color: Colors.grey[600],
                                 child: NumberPicker(
@@ -1044,8 +1037,16 @@ class _HomeState extends State<Home> {
                                   bool isGranted = (await PermissionHandler
                                       .permissionsGranted)!;
                                   Permission.manageExternalStorage.request();
+                                  PermissionStatus batteryOp = await Permission
+                                      .ignoreBatteryOptimizations.status;
 
                                   if (isGranted) {
+                                    if (batteryOp.isGranted) {
+                                    } else {
+                                      Permission.ignoreBatteryOptimizations
+                                          .request();
+                                    }
+
                                     setState(() {
                                       switch (MyAppState.isSchedulingON) {
                                         case (true):
@@ -1115,7 +1116,7 @@ class _HomeState extends State<Home> {
                                 },
                                 child: const Padding(
                                   padding:
-                                      EdgeInsets.fromLTRB(0.0, 48.0, 0.0, 48.0),
+                                      EdgeInsets.fromLTRB(0.0, 38.0, 0.0, 38.0),
                                   child: Icon(Icons.check,
                                       color: Colors.white, size: 30.0),
                                 ),
@@ -1130,7 +1131,7 @@ class _HomeState extends State<Home> {
                 Visibility(
                     visible: schedulevisible,
                     child: Transform.scale(
-                      scale: .9,
+                      scale: .8,
                       child: SafeArea(
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
@@ -1267,6 +1268,10 @@ class _HomeState extends State<Home> {
                                       GetLocationFromGPS();
                                   var connectivityResult = await (Connectivity()
                                       .checkConnectivity());
+                                  await newLocation.getLocationFromGPS();
+                                  latitude = newLocation.latitude;
+                                  longitude = newLocation.longitude;
+                                  print(newLocation);
                                   if (connectivityResult ==
                                       ConnectivityResult.none) {
                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -1280,6 +1285,7 @@ class _HomeState extends State<Home> {
                                     await newLocation.getLocationFromGPS();
                                     latitude = newLocation.latitude;
                                     longitude = newLocation.longitude;
+                                    print(newLocation);
                                     CorrectionsStorage storedCorrections =
                                         CorrectionsStorage();
                                     var newCorrections = await storedCorrections
@@ -1349,7 +1355,7 @@ class _HomeState extends State<Home> {
       for (int i = 0; i < 5; i++) {
         if (DateTime.parse(scheduleStart.values.toList()[i])
             .isAfter(DateTime.now())) {
-          await AndroidAlarmManager.cancel(100 - i);
+          bool canceled = await AndroidAlarmManager.cancel(100 - i);
 
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleStart.values.toList()[i]),
@@ -1358,19 +1364,17 @@ class _HomeState extends State<Home> {
               exact: true,
               createSilence);
 
-          await AndroidAlarmManager.cancel(1000 - i);
+          bool canceled2 = await AndroidAlarmManager.cancel(1000 - i);
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleEnd.values.toList()[i]),
               1000 - i,
               rescheduleOnReboot: true,
               exact: true,
               disableSilence);
-
-          //print('is this working?${scheduleStart.values.toList()[i]}');
         }
         if (DateTime.parse(scheduleStart.values.toList()[i])
             .isBefore(DateTime.now())) {
-          await AndroidAlarmManager.cancel(100 - i);
+          bool canceled = await AndroidAlarmManager.cancel(100 - i);
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleStart.values.toList()[i])
                   .add(const Duration(days: 1)),
@@ -1378,7 +1382,7 @@ class _HomeState extends State<Home> {
               rescheduleOnReboot: true,
               exact: true,
               createSilence);
-          await AndroidAlarmManager.cancel(1000 - i);
+          bool canceled2 = await AndroidAlarmManager.cancel(1000 - i);
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleEnd.values.toList()[i])
                   .add(const Duration(days: 1)),
@@ -1404,26 +1408,24 @@ class _HomeState extends State<Home> {
       for (int i = 0; i < 5; i++) {
         if (DateTime.parse(scheduleStart.values.toList()[i])
             .isAfter(DateTime.now())) {
-          await AndroidAlarmManager.cancel(100 - i);
+          bool canceled = await AndroidAlarmManager.cancel(100 - i);
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleStart.values.toList()[i]),
               100 - i,
               rescheduleOnReboot: true,
               exact: true,
               createSilence);
-          await AndroidAlarmManager.cancel(1000 - i);
+          bool canceled2 = await AndroidAlarmManager.cancel(1000 - i);
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleEnd.values.toList()[i]),
               1000 - i,
               rescheduleOnReboot: true,
               exact: true,
               disableSilence);
-
-          //print('is this working?${scheduleStart.values.toList()[i]}');
         }
         if (DateTime.parse(scheduleStart.values.toList()[i])
             .isBefore(DateTime.now())) {
-          await AndroidAlarmManager.cancel(100 - i);
+          bool canceled = await AndroidAlarmManager.cancel(100 - i);
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleStart.values.toList()[i])
                   .add(const Duration(days: 1)),
@@ -1431,7 +1433,7 @@ class _HomeState extends State<Home> {
               rescheduleOnReboot: true,
               exact: true,
               createSilence);
-          await AndroidAlarmManager.cancel(1000 - i);
+          bool canceled2 = await AndroidAlarmManager.cancel(1009 - i);
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleEnd.values.toList()[i])
                   .add(const Duration(days: 1)),

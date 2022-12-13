@@ -12,7 +12,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:prayer_time_silencer/pages/languagesetting.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:prayer_time_silencer/services/set_device_silent.dart';
 import 'package:prayer_time_silencer/services/silence_scheduler.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
@@ -199,6 +198,7 @@ Future<void> initializeService() async {
       initialNotificationTitle: l10n.notificationTitleBackground,
       initialNotificationContent: l10n.notificationBodyBackground,
       foregroundServiceNotificationId: 888,
+      autoStartOnBoot: isItOn ? true : false,
     ),
     iosConfiguration: IosConfiguration(
       // auto start service
