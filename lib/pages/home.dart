@@ -1041,13 +1041,15 @@ class _HomeState extends State<Home> {
                                 onPressed: () async {
                                   bool isGranted = (await PermissionHandler
                                       .permissionsGranted)!;
-                                  Permission.manageExternalStorage.request();
                                   PermissionStatus batteryOp = await Permission
                                       .ignoreBatteryOptimizations.status;
+                                  Permission.scheduleExactAlarm.request();
 
                                   if (isGranted) {
                                     if (batteryOp.isGranted) {
                                     } else {
+                                      await Future.delayed(
+                                          Duration(milliseconds: 250));
                                       Permission.ignoreBatteryOptimizations
                                           .request();
                                     }
