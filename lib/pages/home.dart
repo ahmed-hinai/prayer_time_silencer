@@ -785,7 +785,7 @@ class _HomeState extends State<Home> {
                 Visibility(
                   visible: gpsvisible,
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(8.0, 100.0, 8.0, 8.0),
+                    padding: const EdgeInsets.fromLTRB(8.0, 200.0, 8.0, 8.0),
                     child: Column(
                       children: [
                         IconButton(
@@ -1362,40 +1362,39 @@ class _HomeState extends State<Home> {
       for (int i = 0; i < 5; i++) {
         if (DateTime.parse(scheduleStart.values.toList()[i])
             .isAfter(DateTime.now())) {
-          bool canceled = await AndroidAlarmManager.cancel(100 - i);
-
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleStart.values.toList()[i]),
               100 - i,
               rescheduleOnReboot: true,
-              exact: true,
+              alarmClock: true,
+              allowWhileIdle: true,
               createSilence);
 
-          bool canceled2 = await AndroidAlarmManager.cancel(1000 - i);
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleEnd.values.toList()[i]),
               1000 - i,
               rescheduleOnReboot: true,
-              exact: true,
+              alarmClock: true,
+              allowWhileIdle: true,
               disableSilence);
         }
         if (DateTime.parse(scheduleStart.values.toList()[i])
             .isBefore(DateTime.now())) {
-          bool canceled = await AndroidAlarmManager.cancel(100 - i);
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleStart.values.toList()[i])
                   .add(const Duration(days: 1)),
               100 - i,
               rescheduleOnReboot: true,
-              exact: true,
+              alarmClock: true,
+              allowWhileIdle: true,
               createSilence);
-          bool canceled2 = await AndroidAlarmManager.cancel(1000 - i);
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleEnd.values.toList()[i])
                   .add(const Duration(days: 1)),
               1000 - i,
               rescheduleOnReboot: true,
-              exact: true,
+              alarmClock: true,
+              allowWhileIdle: true,
               disableSilence);
         }
       }
@@ -1415,38 +1414,39 @@ class _HomeState extends State<Home> {
       for (int i = 0; i < 5; i++) {
         if (DateTime.parse(scheduleStart.values.toList()[i])
             .isAfter(DateTime.now())) {
-          bool canceled = await AndroidAlarmManager.cancel(100 - i);
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleStart.values.toList()[i]),
               100 - i,
+              allowWhileIdle: true,
               rescheduleOnReboot: true,
-              exact: true,
+              alarmClock: true,
               createSilence);
-          bool canceled2 = await AndroidAlarmManager.cancel(1000 - i);
+
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleEnd.values.toList()[i]),
               1000 - i,
               rescheduleOnReboot: true,
-              exact: true,
+              alarmClock: true,
+              allowWhileIdle: true,
               disableSilence);
         }
         if (DateTime.parse(scheduleStart.values.toList()[i])
             .isBefore(DateTime.now())) {
-          bool canceled = await AndroidAlarmManager.cancel(100 - i);
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleStart.values.toList()[i])
                   .add(const Duration(days: 1)),
               100 - i,
               rescheduleOnReboot: true,
-              exact: true,
+              alarmClock: true,
+              allowWhileIdle: true,
               createSilence);
-          bool canceled2 = await AndroidAlarmManager.cancel(1009 - i);
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleEnd.values.toList()[i])
                   .add(const Duration(days: 1)),
               1000 - i,
               rescheduleOnReboot: true,
-              exact: true,
+              alarmClock: true,
+              allowWhileIdle: true,
               disableSilence);
         }
       }
