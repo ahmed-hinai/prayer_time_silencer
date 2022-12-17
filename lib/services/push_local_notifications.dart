@@ -80,10 +80,10 @@ class LocalNotifications {
             playSound: false,
             color: Color.fromARGB(255, 0, 0, 0),
             colorized: true,
-            showWhen: false,
-            ticker: '',
+            showWhen: true,
             visibility: NotificationVisibility.secret,
             channelShowBadge: false,
+            timeoutAfter: 5400000,
             number: 0),
       ),
     );

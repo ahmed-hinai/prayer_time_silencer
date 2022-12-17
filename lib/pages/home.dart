@@ -35,16 +35,16 @@ void createSilence() async {
 
 @pragma('vm:entry-point')
 void disableSilence() async {
+  await MuteSystemSounds().enableSystemSounds();
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   final preferred = widgetsBinding.window.locales;
   const supported = AppLocalizations.supportedLocales;
   final locale = basicLocaleListResolution(preferred, supported);
   final l10n = await AppLocalizations.delegate.load(locale);
   LocalNotifications instance = LocalNotifications();
-  instance.showNotificationBackground(
+  await instance.showNotificationBackground(
       title: l10n.notificationTitleBackground,
       body: l10n.notificationBodyBackground);
-  await MuteSystemSounds().enableSystemSounds();
 }
 
 const Periodic6HourSchedulingTask =
@@ -882,7 +882,7 @@ class _HomeState extends State<Home> {
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold),
                                     value: getValueStart(selections),
-                                    minValue: 0,
+                                    minValue: -20,
                                     maxValue: 20,
                                     onChanged: (value) => setState(() {
                                       for (String key in scheduleStart.keys) {
@@ -1043,7 +1043,9 @@ class _HomeState extends State<Home> {
                                       .permissionsGranted)!;
                                   PermissionStatus batteryOp = await Permission
                                       .ignoreBatteryOptimizations.status;
-                                  Permission.scheduleExactAlarm.request();
+                                  PermissionStatus exactAlarmPerms =
+                                      await Permission
+                                          .scheduleExactAlarm.status;
 
                                   if (isGranted) {
                                     if (batteryOp.isGranted) {
@@ -1052,6 +1054,10 @@ class _HomeState extends State<Home> {
                                           Duration(milliseconds: 250));
                                       Permission.ignoreBatteryOptimizations
                                           .request();
+                                    }
+                                    if (exactAlarmPerms.isGranted) {
+                                    } else {
+                                      Permission.scheduleExactAlarm.request();
                                     }
 
                                     setState(() {
@@ -1365,36 +1371,50 @@ class _HomeState extends State<Home> {
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleStart.values.toList()[i]),
               100 - i,
+              wakeup: false,
               rescheduleOnReboot: true,
               alarmClock: true,
               allowWhileIdle: true,
+              exact: true,
               createSilence);
-
+        }
+        if (DateTime.parse(scheduleEnd.values.toList()[i])
+            .isAfter(DateTime.now())) {
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleEnd.values.toList()[i]),
               1000 - i,
+              wakeup: false,
               rescheduleOnReboot: true,
               alarmClock: true,
               allowWhileIdle: true,
+              exact: true,
               disableSilence);
         }
+
         if (DateTime.parse(scheduleStart.values.toList()[i])
             .isBefore(DateTime.now())) {
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleStart.values.toList()[i])
                   .add(const Duration(days: 1)),
               100 - i,
+              wakeup: false,
               rescheduleOnReboot: true,
               alarmClock: true,
               allowWhileIdle: true,
+              exact: true,
               createSilence);
+        }
+        if (DateTime.parse(scheduleEnd.values.toList()[i])
+            .isBefore(DateTime.now())) {
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleEnd.values.toList()[i])
                   .add(const Duration(days: 1)),
               1000 - i,
+              wakeup: false,
               rescheduleOnReboot: true,
               alarmClock: true,
               allowWhileIdle: true,
+              exact: true,
               disableSilence);
         }
       }
@@ -1417,36 +1437,50 @@ class _HomeState extends State<Home> {
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleStart.values.toList()[i]),
               100 - i,
-              allowWhileIdle: true,
+              wakeup: false,
               rescheduleOnReboot: true,
               alarmClock: true,
+              allowWhileIdle: true,
+              exact: true,
               createSilence);
-
+        }
+        if (DateTime.parse(scheduleEnd.values.toList()[i])
+            .isAfter(DateTime.now())) {
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleEnd.values.toList()[i]),
               1000 - i,
+              wakeup: false,
               rescheduleOnReboot: true,
               alarmClock: true,
               allowWhileIdle: true,
+              exact: true,
               disableSilence);
         }
+
         if (DateTime.parse(scheduleStart.values.toList()[i])
             .isBefore(DateTime.now())) {
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleStart.values.toList()[i])
                   .add(const Duration(days: 1)),
               100 - i,
+              wakeup: false,
               rescheduleOnReboot: true,
               alarmClock: true,
               allowWhileIdle: true,
+              exact: true,
               createSilence);
+        }
+        if (DateTime.parse(scheduleEnd.values.toList()[i])
+            .isBefore(DateTime.now())) {
           await AndroidAlarmManager.oneShotAt(
               DateTime.parse(scheduleEnd.values.toList()[i])
                   .add(const Duration(days: 1)),
               1000 - i,
+              wakeup: false,
               rescheduleOnReboot: true,
               alarmClock: true,
               allowWhileIdle: true,
+              exact: true,
               disableSilence);
         }
       }
