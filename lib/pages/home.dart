@@ -106,7 +106,7 @@ class _HomeState extends State<Home> {
     'Isha': '40'
   };
 
-  void getValueStartMap() async {
+  Future<void> getValueStartMap() async {
     try {
       Map newStart = await WaitAndPreWaitStoreStart().readWaitAndPreWait();
       //print('is this really a new start$newStart');
@@ -120,7 +120,7 @@ class _HomeState extends State<Home> {
 
   Map oldValueStartMap = {};
 
-  void getValueEndMap() async {
+  Future<void> getValueEndMap() async {
     try {
       Map newEnd = await WaitAndPreWaitStoreEnd().readWaitAndPreWait();
       for (String key in newEnd.keys) {
@@ -1419,73 +1419,140 @@ class _HomeState extends State<Home> {
         }
       }
     } catch (e) {
-      TimingsLocal localinstance =
-          TimingsLocal(day: day, month: month, year: year);
-      await localinstance.getTimings();
-      prayers = localinstance.prayers;
+      try {
+        TimingsLocal localinstance =
+            TimingsLocal(day: day, month: month, year: year);
+        await localinstance.getTimings();
+        prayers = localinstance.prayers;
+        await getValueStartMap();
+        await getValueEndMap();
 
-      CreateSchedule getSchedule = CreateSchedule(
-          prayers: prayers,
-          prewait: currentValueStartMap,
-          wait: currentValueEndMap);
-      await getSchedule.createSchedule();
-      scheduleStart = getSchedule.scheduleStart;
-      scheduleEnd = getSchedule.scheduleEnd;
-      for (int i = 0; i < 5; i++) {
-        if (DateTime.parse(scheduleStart.values.toList()[i])
-            .isAfter(DateTime.now())) {
-          await AndroidAlarmManager.oneShotAt(
-              DateTime.parse(scheduleStart.values.toList()[i]),
-              100 - i,
-              wakeup: false,
-              rescheduleOnReboot: true,
-              alarmClock: true,
-              allowWhileIdle: true,
-              exact: true,
-              createSilence);
-        }
-        if (DateTime.parse(scheduleEnd.values.toList()[i])
-            .isAfter(DateTime.now())) {
-          await AndroidAlarmManager.oneShotAt(
-              DateTime.parse(scheduleEnd.values.toList()[i]),
-              1000 - i,
-              wakeup: false,
-              rescheduleOnReboot: true,
-              alarmClock: true,
-              allowWhileIdle: true,
-              exact: true,
-              disableSilence);
-        }
+        CreateSchedule getSchedule = CreateSchedule(
+            prayers: prayers,
+            prewait: currentValueStartMap,
+            wait: currentValueEndMap);
+        await getSchedule.createSchedule();
+        scheduleStart = getSchedule.scheduleStart;
+        scheduleEnd = getSchedule.scheduleEnd;
+        for (int i = 0; i < 5; i++) {
+          if (DateTime.parse(scheduleStart.values.toList()[i])
+              .isAfter(DateTime.now())) {
+            await AndroidAlarmManager.oneShotAt(
+                DateTime.parse(scheduleStart.values.toList()[i]),
+                100 - i,
+                wakeup: false,
+                rescheduleOnReboot: true,
+                alarmClock: true,
+                allowWhileIdle: true,
+                exact: true,
+                createSilence);
+          }
+          if (DateTime.parse(scheduleEnd.values.toList()[i])
+              .isAfter(DateTime.now())) {
+            await AndroidAlarmManager.oneShotAt(
+                DateTime.parse(scheduleEnd.values.toList()[i]),
+                1000 - i,
+                wakeup: false,
+                rescheduleOnReboot: true,
+                alarmClock: true,
+                allowWhileIdle: true,
+                exact: true,
+                disableSilence);
+          }
 
-        if (DateTime.parse(scheduleStart.values.toList()[i])
-            .isBefore(DateTime.now())) {
-          await AndroidAlarmManager.oneShotAt(
-              DateTime.parse(scheduleStart.values.toList()[i])
-                  .add(const Duration(days: 1)),
-              100 - i,
-              wakeup: false,
-              rescheduleOnReboot: true,
-              alarmClock: true,
-              allowWhileIdle: true,
-              exact: true,
-              createSilence);
+          if (DateTime.parse(scheduleStart.values.toList()[i])
+              .isBefore(DateTime.now())) {
+            await AndroidAlarmManager.oneShotAt(
+                DateTime.parse(scheduleStart.values.toList()[i])
+                    .add(const Duration(days: 1)),
+                100 - i,
+                wakeup: false,
+                rescheduleOnReboot: true,
+                alarmClock: true,
+                allowWhileIdle: true,
+                exact: true,
+                createSilence);
+          }
+          if (DateTime.parse(scheduleEnd.values.toList()[i])
+              .isBefore(DateTime.now())) {
+            await AndroidAlarmManager.oneShotAt(
+                DateTime.parse(scheduleEnd.values.toList()[i])
+                    .add(const Duration(days: 1)),
+                1000 - i,
+                wakeup: false,
+                rescheduleOnReboot: true,
+                alarmClock: true,
+                allowWhileIdle: true,
+                exact: true,
+                disableSilence);
+          }
         }
-        if (DateTime.parse(scheduleEnd.values.toList()[i])
-            .isBefore(DateTime.now())) {
-          await AndroidAlarmManager.oneShotAt(
-              DateTime.parse(scheduleEnd.values.toList()[i])
-                  .add(const Duration(days: 1)),
-              1000 - i,
-              wakeup: false,
-              rescheduleOnReboot: true,
-              alarmClock: true,
-              allowWhileIdle: true,
-              exact: true,
-              disableSilence);
+      } catch (e) {
+        TimingsLocal localinstance =
+            TimingsLocal(day: day, month: month, year: year);
+        await localinstance.getTimings();
+        prayers = localinstance.prayers;
+        CreateSchedule getSchedule = CreateSchedule(
+            prayers: prayers,
+            prewait: currentValueStartMap,
+            wait: currentValueEndMap);
+        await getSchedule.createSchedule();
+        scheduleStart = getSchedule.scheduleStart;
+        scheduleEnd = getSchedule.scheduleEnd;
+        for (int i = 0; i < 5; i++) {
+          if (DateTime.parse(scheduleStart.values.toList()[i])
+              .isAfter(DateTime.now())) {
+            await AndroidAlarmManager.oneShotAt(
+                DateTime.parse(scheduleStart.values.toList()[i]),
+                100 - i,
+                wakeup: false,
+                rescheduleOnReboot: true,
+                alarmClock: true,
+                allowWhileIdle: true,
+                exact: true,
+                createSilence);
+          }
+          if (DateTime.parse(scheduleEnd.values.toList()[i])
+              .isAfter(DateTime.now())) {
+            await AndroidAlarmManager.oneShotAt(
+                DateTime.parse(scheduleEnd.values.toList()[i]),
+                1000 - i,
+                wakeup: false,
+                rescheduleOnReboot: true,
+                alarmClock: true,
+                allowWhileIdle: true,
+                exact: true,
+                disableSilence);
+          }
+
+          if (DateTime.parse(scheduleStart.values.toList()[i])
+              .isBefore(DateTime.now())) {
+            await AndroidAlarmManager.oneShotAt(
+                DateTime.parse(scheduleStart.values.toList()[i])
+                    .add(const Duration(days: 1)),
+                100 - i,
+                wakeup: false,
+                rescheduleOnReboot: true,
+                alarmClock: true,
+                allowWhileIdle: true,
+                exact: true,
+                createSilence);
+          }
+          if (DateTime.parse(scheduleEnd.values.toList()[i])
+              .isBefore(DateTime.now())) {
+            await AndroidAlarmManager.oneShotAt(
+                DateTime.parse(scheduleEnd.values.toList()[i])
+                    .add(const Duration(days: 1)),
+                1000 - i,
+                wakeup: false,
+                rescheduleOnReboot: true,
+                alarmClock: true,
+                allowWhileIdle: true,
+                exact: true,
+                disableSilence);
+          }
         }
       }
-
-      //print(e);
     }
   }
 }
