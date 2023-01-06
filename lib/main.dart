@@ -13,10 +13,10 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:prayer_time_silencer/pages/languagesetting.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:prayer_time_silencer/services/silence_scheduler.dart';
-import 'package:workmanager/workmanager.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_background_service_android/flutter_background_service_android.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:prayer_time_silencer/services/alarm_scheduler.dart';
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -141,10 +141,6 @@ void main() async {
   await AndroidAlarmManager.initialize();
   await LocalNotifications().initialize();
 
-  Workmanager().initialize(
-    callbackDispatcher, // The top level function, aka callbackDispatche//
-  );
-
   runApp(const MyApp());
   await initializeService();
 }
@@ -232,6 +228,16 @@ void onStart(ServiceInstance service) async {
   const supported = AppLocalizations.supportedLocales;
   final locale = basicLocaleListResolution(preferred, supported);
   final l10n = await AppLocalizations.delegate.load(locale);
+  try {
+    await AndroidAlarmManager.periodic(
+        Duration(hours: 10),
+        12121,
+        wakeup: false,
+        rescheduleOnReboot: true,
+        allowWhileIdle: true,
+        exact: true,
+        scheduleSilence);
+  } catch (e) {}
 
   // Only available for flutter 3.0.0 and later
   DartPluginRegistrant.ensureInitialized();
@@ -263,6 +269,7 @@ void onStart(ServiceInstance service) async {
     if (await service.isForegroundService()) {
       /// OPTIONAL for use custom notification
       /// the notification id must be equals with AndroidConfiguration when you call configure() method.
+
       LocalNotifications instance = LocalNotifications();
       instance.showNotificationBackground(
           title: l10n.notificationTitleBackground,

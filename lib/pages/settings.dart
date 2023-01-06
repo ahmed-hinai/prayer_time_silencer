@@ -1,7 +1,9 @@
+import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:prayer_time_silencer/main.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:prayer_time_silencer/services/alarm_scheduler.dart';
 import 'package:prayer_time_silencer/pages/home.dart';
 import 'package:workmanager/workmanager.dart';
 
@@ -54,15 +56,21 @@ class _SettingsState extends State<Settings> {
                   try {
                     if (MyAppState.isSchedulingON!) {
                       service.startService();
-                      Workmanager().registerPeriodicTask(
-                        Periodic6HourSchedulingTask,
-                        Periodic6HourSchedulingTask,
-                        frequency: const Duration(hours: 6),
-                      );
+                      try {
+                        AndroidAlarmManager.periodic(
+                            const Duration(hours: 10),
+                            12121,
+                            wakeup: false,
+                            rescheduleOnReboot: true,
+                            allowWhileIdle: true,
+                            exact: true,
+                            scheduleSilence);
+                      } catch (e) {}
                     } else {
                       service.invoke("stopService");
-                      Workmanager()
-                          .cancelByUniqueName(Periodic6HourSchedulingTask);
+                      try {
+                        AndroidAlarmManager.cancel(12121);
+                      } catch (e) {}
                     }
                   } catch (e) {}
                 });

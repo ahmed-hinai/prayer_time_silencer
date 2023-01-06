@@ -16,8 +16,8 @@ import 'package:numberpicker/numberpicker.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:open_settings/open_settings.dart';
-import 'package:workmanager/workmanager.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 @pragma('vm:entry-point')
 void createSilence() async {
@@ -49,30 +49,6 @@ void disableSilence() async {
 
 const Periodic6HourSchedulingTask =
     "org.ahmedhinai.prayer_time_silencer.Periodic6HourSchedulingTask";
-
-@pragma(
-    'vm:entry-point') // Mandatory if the App is obfuscated or using Flutter 3.1+
-void callbackDispatcher() {
-  Workmanager().executeTask((task, inputData) async {
-    switch (task) {
-      case Periodic6HourSchedulingTask:
-        try {
-          switch (MyAppState.isSchedulingON) {
-            case (true):
-              // createSilenceBackgroundNotification();
-              _HomeState().scheduleSilence();
-              //print("$Periodic1HourSchedulingTask was executed");
-              return Future.value(true);
-          }
-        } catch (e) {
-          //print(e);
-          return Future.value(false);
-        }
-    }
-
-    return Future.value(true);
-  });
-}
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -161,11 +137,14 @@ class _HomeState extends State<Home> {
         });
 
         scheduleSilence();
-        Workmanager().registerPeriodicTask(
-          Periodic6HourSchedulingTask,
-          Periodic6HourSchedulingTask,
-          frequency: const Duration(hours: 6),
-        );
+        await AndroidAlarmManager.periodic(
+            const Duration(hours: 10),
+            12121,
+            wakeup: false,
+            rescheduleOnReboot: true,
+            allowWhileIdle: true,
+            exact: true,
+            scheduleSilence);
       } else {
         setState(() {
           gpsvisible = true;
@@ -1048,13 +1027,13 @@ class _HomeState extends State<Home> {
                                           .scheduleExactAlarm.status;
 
                                   if (isGranted) {
-                                    if (batteryOp.isGranted) {
-                                    } else {
-                                      await Future.delayed(
-                                          Duration(milliseconds: 250));
-                                      Permission.ignoreBatteryOptimizations
-                                          .request();
-                                    }
+                                    // if (batteryOp.isGranted) {
+                                    // } else {
+                                    //   await Future.delayed(
+                                    //       Duration(milliseconds: 250));
+                                    //   Permission.ignoreBatteryOptimizations
+                                    //       .request();
+                                    // }
                                     if (exactAlarmPerms.isGranted) {
                                     } else {
                                       Permission.scheduleExactAlarm.request();
@@ -1068,11 +1047,14 @@ class _HomeState extends State<Home> {
                                           timingsvisible2 = true;
                                           confirmvisible = true;
                                           scheduleSilence();
-                                          Workmanager().registerPeriodicTask(
-                                            Periodic6HourSchedulingTask,
-                                            Periodic6HourSchedulingTask,
-                                            frequency: const Duration(hours: 6),
-                                          );
+                                          AndroidAlarmManager.periodic(
+                                              const Duration(hours: 10),
+                                              12121,
+                                              wakeup: false,
+                                              rescheduleOnReboot: true,
+                                              allowWhileIdle: true,
+                                              exact: true,
+                                              scheduleSilence);
                                           break;
                                         case (false):
                                           ScaffoldMessenger.of(context)
