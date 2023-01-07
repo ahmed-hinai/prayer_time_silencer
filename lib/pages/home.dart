@@ -17,7 +17,6 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:open_settings/open_settings.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 @pragma('vm:entry-point')
 void createSilence() async {
@@ -81,7 +80,9 @@ class _HomeState extends State<Home> {
     'Maghrib': '40',
     'Isha': '40'
   };
-
+  var startschedulecolor = Color.fromARGB(255, 13, 105, 180);
+  var endschedulecolor = Color.fromARGB(255, 5, 48, 83);
+  var mainbackgroundcolor = Color.fromARGB(255, 248, 246, 246);
   Future<void> getValueStartMap() async {
     try {
       Map newStart = await WaitAndPreWaitStoreStart().readWaitAndPreWait();
@@ -108,10 +109,12 @@ class _HomeState extends State<Home> {
   }
 
   Map oldValueEndMap = {};
+
   @override
   void initState() {
     super.initState();
     // initPlatformState();
+
     getValueStartMap();
     getValueEndMap();
     Future.delayed(Duration.zero, () {
@@ -134,6 +137,7 @@ class _HomeState extends State<Home> {
           timingsvisible2 = true;
           schedulevisible = false;
           confirmvisible = true;
+          mainbackgroundcolor = Color.fromARGB(255, 7, 64, 111);
         });
 
         scheduleSilence();
@@ -346,7 +350,7 @@ class _HomeState extends State<Home> {
         elevation: 1.0,
         title: const Text(""),
         centerTitle: true,
-        backgroundColor: Colors.grey[900],
+        backgroundColor: Color.fromARGB(255, 7, 64, 111),
         actions: [
           PopupMenuButton<String>(
             itemBuilder: (BuildContext context) {
@@ -372,7 +376,7 @@ class _HomeState extends State<Home> {
         ],
       ),
       onDrawerChanged: (isopened) => _drawerIsOpened = isopened,
-      backgroundColor: Colors.grey[900],
+      backgroundColor: mainbackgroundcolor,
       body: WillPopScope(
         onWillPop: () async {
           if (_drawerIsOpened == true) {
@@ -409,8 +413,11 @@ class _HomeState extends State<Home> {
                                     Container(child: LayoutBuilder(
                                         builder: (context, constraints) {
                                       return ToggleButtons(
-                                        borderWidth: 3.0,
-                                        selectedBorderColor: Colors.grey[200],
+                                        borderWidth: 4.0,
+                                        borderColor:
+                                            Color.fromARGB(255, 248, 246, 246),
+                                        selectedBorderColor:
+                                            Color.fromARGB(255, 7, 64, 111),
                                         borderRadius: BorderRadius.circular(70),
                                         constraints: BoxConstraints.expand(
                                             width: constraints.maxWidth / 1.03),
@@ -482,7 +489,8 @@ class _HomeState extends State<Home> {
                                                   children: [
                                                     Expanded(
                                                       child: Card(
-                                                        color: Colors.grey[600],
+                                                        color:
+                                                            startschedulecolor,
                                                         child: Center(
                                                           child: Padding(
                                                             padding:
@@ -513,7 +521,7 @@ class _HomeState extends State<Home> {
                                                     ),
                                                     Expanded(
                                                       child: Card(
-                                                        color: Colors.grey[600],
+                                                        color: endschedulecolor,
                                                         child: Center(
                                                           child: Padding(
                                                             padding:
@@ -580,6 +588,32 @@ class _HomeState extends State<Home> {
                             })),
                       )),
                 ),
+                Visibility(
+                    visible: confirmvisible,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(18, 8, 18, 8),
+                      child: Column(
+                        children: [
+                          Card(
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(70.0)),
+                            elevation: 10,
+                            color: const Color.fromARGB(255, 7, 64, 111),
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.fromLTRB(28, 28, 28, 28),
+                              child: Text(
+                                  AppLocalizations.of(context)!
+                                      .confirmationMessage,
+                                  style: const TextStyle(
+                                      fontSize: 18.0,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(18.0, 1.0, 18.0, 1.0),
                   child: Visibility(
@@ -597,119 +631,99 @@ class _HomeState extends State<Home> {
                                     Container(child: LayoutBuilder(
                                         builder: (context, constraints) {
                                       return ToggleButtons(
-                                        borderWidth: 3.0,
-                                        selectedBorderColor: Colors.grey[200],
-                                        borderRadius: BorderRadius.circular(70),
-                                        constraints: BoxConstraints.expand(
-                                            width: constraints.maxWidth / 1.03),
-                                        isSelected: const [false],
-                                        onPressed: (indexx) {
-                                          setState((() => null));
-                                        },
-                                        children: [
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Expanded(
-                                                flex: 8,
-                                                child: Card(
-                                                  color: const Color.fromARGB(
-                                                      255, 7, 64, 111),
-                                                  shape: RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              70.0)),
-                                                  child: Padding(
-                                                    padding: const EdgeInsets
-                                                            .fromLTRB(
-                                                        8.0, 1.0, 8.0, 1.0),
-                                                    child: Center(
-                                                      child: Text(
-                                                        index == 0
-                                                            ? AppLocalizations
-                                                                    .of(
-                                                                        context)!
-                                                                .fajr
-                                                            : index == 1
-                                                                ? AppLocalizations.of(
-                                                                        context)!
-                                                                    .dhuhr
-                                                                : index == 2
-                                                                    ? AppLocalizations.of(
-                                                                            context)!
-                                                                        .asr
-                                                                    : index == 3
-                                                                        ? AppLocalizations.of(context)!
-                                                                            .maghrib
-                                                                        : index ==
-                                                                                4
-                                                                            ? AppLocalizations.of(context)!.isha
-                                                                            : '',
-                                                        style: const TextStyle(
-                                                            color: Colors.white,
-                                                            fontSize: 16.0,
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .bold),
+                                          borderWidth: 0.0,
+                                          selectedBorderColor:
+                                              Color.fromARGB(255, 7, 64, 111),
+                                          borderColor:
+                                              Color.fromARGB(255, 7, 64, 111),
+                                          borderRadius:
+                                              BorderRadius.circular(70),
+                                          constraints: BoxConstraints.expand(
+                                              width:
+                                                  constraints.maxWidth / 1.03),
+                                          isSelected: const [false],
+                                          onPressed: null,
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Expanded(
+                                                  flex: 8,
+                                                  child: Card(
+                                                    color: Color.fromARGB(
+                                                        255, 248, 246, 246),
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        70.0)),
+                                                    child: Padding(
+                                                      padding: const EdgeInsets
+                                                              .fromLTRB(
+                                                          8.0, 1.0, 8.0, 1.0),
+                                                      child: Center(
+                                                        child: Text(
+                                                          index == 0
+                                                              ? AppLocalizations
+                                                                      .of(
+                                                                          context)!
+                                                                  .fajr
+                                                              : index == 1
+                                                                  ? AppLocalizations.of(
+                                                                          context)!
+                                                                      .dhuhr
+                                                                  : index == 2
+                                                                      ? AppLocalizations.of(
+                                                                              context)!
+                                                                          .asr
+                                                                      : index ==
+                                                                              3
+                                                                          ? AppLocalizations.of(context)!
+                                                                              .maghrib
+                                                                          : index == 4
+                                                                              ? AppLocalizations.of(context)!.isha
+                                                                              : '',
+                                                          style: const TextStyle(
+                                                              color: Color
+                                                                  .fromARGB(
+                                                                      255,
+                                                                      7,
+                                                                      64,
+                                                                      111),
+                                                              fontSize: 16.0,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                        ),
                                                       ),
                                                     ),
                                                   ),
                                                 ),
-                                              ),
-                                              Expanded(
-                                                flex: 12,
-                                                child: Row(
-                                                  children: [
-                                                    Expanded(
-                                                      child: Card(
-                                                        color: Colors.grey[600],
-                                                        child: Center(
-                                                          child: Padding(
-                                                            padding:
-                                                                const EdgeInsets
-                                                                        .fromLTRB(
-                                                                    8.0,
-                                                                    1.0,
-                                                                    8.0,
-                                                                    1.0),
-                                                            child: Text(
-                                                              DateFormat.Hm().format(
-                                                                  DateTime.parse(
-                                                                      scheduleStart
-                                                                          .values
-                                                                          .toList()[index])),
-                                                              style: const TextStyle(
-                                                                  fontSize:
-                                                                      16.0,
-                                                                  color: Colors
-                                                                      .white,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    Expanded(
-                                                      child: Card(
-                                                        color: Colors.grey[600],
-                                                        child: Center(
-                                                          child: Padding(
-                                                            padding:
-                                                                const EdgeInsets
-                                                                        .fromLTRB(
-                                                                    8.0,
-                                                                    1.0,
-                                                                    8.0,
-                                                                    1.0),
-                                                            child: Text(
+                                                Expanded(
+                                                  flex: 15,
+                                                  child: Row(
+                                                    children: [
+                                                      Expanded(
+                                                        child: Card(
+                                                          color:
+                                                              startschedulecolor,
+                                                          child: Center(
+                                                            child: Padding(
+                                                              padding:
+                                                                  const EdgeInsets
+                                                                          .fromLTRB(
+                                                                      8.0,
+                                                                      1.0,
+                                                                      8.0,
+                                                                      1.0),
+                                                              child: Text(
                                                                 DateFormat.Hm().format(
-                                                                    DateTime.parse(scheduleEnd
+                                                                    DateTime.parse(
+                                                                        scheduleStart
                                                                             .values
-                                                                            .toList()[
-                                                                        index])),
+                                                                            .toList()[index])),
                                                                 style: const TextStyle(
                                                                     fontSize:
                                                                         16.0,
@@ -717,32 +731,66 @@ class _HomeState extends State<Home> {
                                                                         .white,
                                                                     fontWeight:
                                                                         FontWeight
-                                                                            .bold)),
+                                                                            .bold),
+                                                              ),
+                                                            ),
                                                           ),
                                                         ),
                                                       ),
-                                                    ),
-                                                  ],
+                                                      Expanded(
+                                                        child: Card(
+                                                          color:
+                                                              endschedulecolor,
+                                                          child: Center(
+                                                            child: Padding(
+                                                              padding:
+                                                                  const EdgeInsets
+                                                                          .fromLTRB(
+                                                                      8.0,
+                                                                      1.0,
+                                                                      8.0,
+                                                                      1.0),
+                                                              child: Text(
+                                                                  DateFormat.Hm().format(DateTime.parse(scheduleEnd
+                                                                          .values
+                                                                          .toList()[
+                                                                      index])),
+                                                                  style: const TextStyle(
+                                                                      fontSize:
+                                                                          16.0,
+                                                                      color: Colors
+                                                                          .white,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold)),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
                                                 ),
-                                              ),
-                                              Expanded(
-                                                flex: 8,
-                                                child: Card(
-                                                  color: const Color.fromARGB(
-                                                      255, 7, 64, 111),
-                                                  shape: RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              70.0)),
-                                                  child: Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
+                                                Expanded(
+                                                  flex: 8,
+                                                  child: Card(
+                                                    color: Color.fromARGB(
+                                                        255, 248, 246, 246),
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        70.0)),
                                                     child: Center(
                                                       child: Text(
                                                         '${oldPrayers.values.toList()[index]}',
                                                         style: const TextStyle(
-                                                            color: Colors.white,
+                                                            color:
+                                                                Color.fromARGB(
+                                                                    255,
+                                                                    7,
+                                                                    64,
+                                                                    111),
                                                             fontSize: 16.0,
                                                             fontWeight:
                                                                 FontWeight
@@ -750,12 +798,10 @@ class _HomeState extends State<Home> {
                                                       ),
                                                     ),
                                                   ),
-                                                ),
-                                              )
-                                            ],
-                                          )
-                                        ],
-                                      );
+                                                )
+                                              ],
+                                            ),
+                                          ]);
                                     })),
                                   ]);
                             })),
@@ -844,6 +890,50 @@ class _HomeState extends State<Home> {
                 Visibility(
                   maintainAnimation: true,
                   maintainState: true,
+                  visible: schedulevisible | confirmvisible,
+                  child: Transform.scale(
+                    scale: .9,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(18.0, 0.0, 18.0, 0.0),
+                      child: Row(children: [
+                        Expanded(
+                          child: Card(
+                              color: startschedulecolor,
+                              child: Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                    18.0, 8.0, 18.0, 8.0),
+                                child: Text(
+                                  AppLocalizations.of(context)!.startSchedule,
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12.0,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              )),
+                        ),
+                        Expanded(
+                          child: Card(
+                            color: endschedulecolor,
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(
+                                  18.0, 8.0, 18.0, 8.0),
+                              child: Text(
+                                AppLocalizations.of(context)!.endSchedule,
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12.0,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ]),
+                    ),
+                  ),
+                ),
+                Visibility(
+                  maintainAnimation: true,
+                  maintainState: true,
                   visible: schedulevisible,
                   child: Transform.scale(
                     scale: .9,
@@ -854,7 +944,7 @@ class _HomeState extends State<Home> {
                           children: [
                             Expanded(
                               child: Card(
-                                color: Colors.grey[600],
+                                color: startschedulecolor,
                                 child: Container(
                                   child: NumberPicker(
                                     textStyle: const TextStyle(
@@ -898,7 +988,7 @@ class _HomeState extends State<Home> {
                             ),
                             Expanded(
                               child: Card(
-                                color: Colors.grey[600],
+                                color: endschedulecolor,
                                 child: NumberPicker(
                                   itemWidth: 168.0,
                                   textStyle: const TextStyle(
@@ -948,50 +1038,6 @@ class _HomeState extends State<Home> {
                   child: Transform.scale(
                     scale: .9,
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(18.0, 0.0, 18.0, 0.0),
-                      child: Row(children: [
-                        Expanded(
-                          child: Card(
-                              color: Colors.grey[600],
-                              child: Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                    18.0, 8.0, 18.0, 8.0),
-                                child: Text(
-                                  AppLocalizations.of(context)!.startSchedule,
-                                  style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12.0,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              )),
-                        ),
-                        Expanded(
-                          child: Card(
-                            color: Colors.grey[600],
-                            child: Padding(
-                              padding: const EdgeInsets.fromLTRB(
-                                  18.0, 8.0, 18.0, 8.0),
-                              child: Text(
-                                AppLocalizations.of(context)!.endSchedule,
-                                style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12.0,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ]),
-                    ),
-                  ),
-                ),
-                Visibility(
-                  maintainAnimation: true,
-                  maintainState: true,
-                  visible: schedulevisible,
-                  child: Transform.scale(
-                    scale: .9,
-                    child: Padding(
                       padding: const EdgeInsets.fromLTRB(20.0, 0.0, 20.0, 0.0),
                       child: Card(
                         color: Colors.grey[800],
@@ -1020,8 +1066,7 @@ class _HomeState extends State<Home> {
                                 onPressed: () async {
                                   bool isGranted = (await PermissionHandler
                                       .permissionsGranted)!;
-                                  PermissionStatus batteryOp = await Permission
-                                      .ignoreBatteryOptimizations.status;
+
                                   PermissionStatus exactAlarmPerms =
                                       await Permission
                                           .scheduleExactAlarm.status;
@@ -1055,6 +1100,9 @@ class _HomeState extends State<Home> {
                                               allowWhileIdle: true,
                                               exact: true,
                                               scheduleSilence);
+                                          mainbackgroundcolor =
+                                              const Color.fromARGB(
+                                                  255, 7, 64, 111);
                                           break;
                                         case (false):
                                           ScaffoldMessenger.of(context)
@@ -1069,11 +1117,13 @@ class _HomeState extends State<Home> {
 
                                   if (!isGranted) {
                                     showDialog(
-                                        barrierColor: Colors.grey[800],
+                                        barrierColor:
+                                            Color.fromARGB(212, 4, 42, 74),
                                         context: context,
                                         builder: (BuildContext context) =>
                                             AlertDialog(
-                                              backgroundColor: Colors.grey[800],
+                                              backgroundColor: Color.fromARGB(
+                                                  255, 7, 64, 111),
                                               actions: [
                                                 TextButton(
                                                     onPressed: () async {
@@ -1130,7 +1180,7 @@ class _HomeState extends State<Home> {
                       child: SafeArea(
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.grey[700]),
+                              backgroundColor: Colors.grey[800]),
                           onPressed: (() async {
                             dynamic result = await Navigator.pushNamed(
                                 context, '/corrections',
@@ -1184,29 +1234,6 @@ class _HomeState extends State<Home> {
                         ),
                       ),
                     )),
-                Visibility(
-                    visible: confirmvisible,
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(60, 0, 60, 8),
-                      child: Column(
-                        children: [
-                          Card(
-                            color: const Color.fromARGB(255, 7, 64, 111),
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.fromLTRB(58, 58, 58, 58),
-                              child: Text(
-                                  AppLocalizations.of(context)!
-                                      .confirmationMessage,
-                                  style: const TextStyle(
-                                      fontSize: 18.0,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white)),
-                            ),
-                          ),
-                        ],
-                      ),
-                    )),
                 Padding(
                   padding: const EdgeInsets.all(50.0),
                   child: Row(
@@ -1222,8 +1249,13 @@ class _HomeState extends State<Home> {
                                   AppLocalizations.of(context)!.editTooltip,
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        const Color.fromARGB(255, 7, 64, 111)),
+                                  elevation: 10,
+                                  backgroundColor:
+                                      const Color.fromARGB(255, 7, 64, 111),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius:
+                                          BorderRadius.circular(10.0)),
+                                ),
                                 onPressed: () async {
                                   setState(() {
                                     gpsvisible = false;
@@ -1231,13 +1263,15 @@ class _HomeState extends State<Home> {
                                     confirmvisible = false;
                                     timingsvisible2 = false;
                                     timingsvisible = true;
+                                    mainbackgroundcolor =
+                                        Color.fromARGB(255, 248, 246, 246);
                                   });
                                 },
                                 child: Padding(
-                                  padding: const EdgeInsets.all(2.0),
+                                  padding: const EdgeInsets.all(12.0),
                                   child: Icon(
                                     Icons.edit,
-                                    color: Colors.grey[900],
+                                    color: Color.fromARGB(255, 241, 240, 240),
                                     size: 40,
                                   ),
                                 ),
@@ -1256,8 +1290,13 @@ class _HomeState extends State<Home> {
                                   AppLocalizations.of(context)!.locationTooltip,
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        const Color.fromARGB(255, 7, 64, 111)),
+                                  backgroundColor:
+                                      const Color.fromARGB(255, 7, 64, 111),
+                                  elevation: 10,
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius:
+                                          BorderRadius.circular(10.0)),
+                                ),
                                 onPressed: () async {
                                   GetLocationFromGPS newLocation =
                                       GetLocationFromGPS();
@@ -1312,6 +1351,8 @@ class _HomeState extends State<Home> {
                                         confirmvisible = false;
                                         timingsvisible = true;
                                         schedulevisible = true;
+                                        mainbackgroundcolor =
+                                            Color.fromARGB(255, 248, 246, 246);
                                       }
                                     });
                                   } catch (e) {
@@ -1324,10 +1365,10 @@ class _HomeState extends State<Home> {
                                   }
                                 },
                                 child: Padding(
-                                  padding: const EdgeInsets.all(2.0),
+                                  padding: const EdgeInsets.all(12.0),
                                   child: Icon(
                                     Icons.location_on,
-                                    color: Colors.grey[900],
+                                    color: Color.fromARGB(255, 241, 240, 240),
                                     size: 40,
                                   ),
                                 ),

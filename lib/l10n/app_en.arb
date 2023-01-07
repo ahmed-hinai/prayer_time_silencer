@@ -29,6 +29,8 @@
     "correctionsMessage": "It is likely that the prayer times are slightly inaccurate, hence it is advised to consult official prayer times and add a correction.",
     "doNotDistrubTitle": "Do Not Disturb access required",
     "doNotDistrubBody": "The app requires the Do Not Disturb access to function.",
+    "batteryOPRequestTitle": "Ignore battery optimization permission required",
+    "batteryOPRequestBody": "The app needs to run in the background to reliably silence the phone on your chosen times. Please allow the ignore battery optimization permission.",
     "notificationTitle":"Prayer Time Silencer",
     "notificationBody": "Your device is silent",
     "notificationTitleBackground":"Prayer Time Silencer",

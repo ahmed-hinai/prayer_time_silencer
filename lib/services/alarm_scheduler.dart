@@ -83,7 +83,6 @@ Future<void> getValueEndMap() async {
 }
 
 void scheduleSilence() async {
-  print('am i being called rn');
   try {
     TimingsLocal localinstance =
         TimingsLocal(day: day, month: month, year: year);
