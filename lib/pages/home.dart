@@ -702,7 +702,7 @@ class _HomeState extends State<Home> {
                                                   ),
                                                 ),
                                                 Expanded(
-                                                  flex: 15,
+                                                  flex: 12,
                                                   child: Row(
                                                     children: [
                                                       Expanded(
