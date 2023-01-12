@@ -16,7 +16,9 @@ import 'package:prayer_time_silencer/services/silence_scheduler.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_background_service_android/flutter_background_service_android.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:prayer_time_silencer/services/alarm_scheduler.dart';
+import 'package:prayer_time_silencer/services/get_prayer_times_local.dart';
+import 'package:prayer_time_silencer/services/wait_and_prewait_store.dart';
+import 'package:prayer_time_silencer/services/set_device_silent.dart';
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -32,10 +34,9 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   static bool? isSchedulingON;
   Locale? _locale;
 
-  final int day = DateTime.now().day;
-  final int month = DateTime.now().month;
-  final int year = DateTime.now().year;
-  late var data;
+  int day = DateTime.now().day;
+  int month = DateTime.now().month;
+  int year = DateTime.now().year;
   Map<String, DateTime> prayers = {};
   Map<String, String> scheduleStart = {};
   Map<String, String> scheduleEnd = {};
@@ -190,7 +191,7 @@ Future<void> initializeService() async {
       // auto start service
 
       autoStart: isItOn ? true : false,
-      isForegroundMode: isItOn ? true : false,
+      isForegroundMode: true,
       notificationChannelId: 'foreground_silence',
       initialNotificationTitle: l10n.notificationTitleBackground,
       initialNotificationContent: l10n.notificationBodyBackground,
@@ -229,16 +230,6 @@ void onStart(ServiceInstance service) async {
   const supported = AppLocalizations.supportedLocales;
   final locale = basicLocaleListResolution(preferred, supported);
   final l10n = await AppLocalizations.delegate.load(locale);
-  try {
-    await AndroidAlarmManager.periodic(
-        Duration(hours: 10),
-        12121,
-        wakeup: false,
-        rescheduleOnReboot: true,
-        allowWhileIdle: true,
-        exact: true,
-        scheduleSilence);
-  } catch (e) {}
 
   // Only available for flutter 3.0.0 and later
   DartPluginRegistrant.ensureInitialized();
@@ -265,16 +256,245 @@ void onStart(ServiceInstance service) async {
   });
 
   // bring to foreground
-
   if (service is AndroidServiceInstance) {
     if (await service.isForegroundService()) {
-      /// OPTIONAL for use custom notification
-      /// the notification id must be equals with AndroidConfiguration when you call configure() method.
-
       LocalNotifications instance = LocalNotifications();
       instance.showNotificationBackground(
-          title: l10n.notificationTitleBackground,
-          body: l10n.notificationBodyBackground);
+        title: l10n.notificationTitleBackground,
+        body: l10n.notificationBodyBackground,
+      );
+      Timer.periodic(Duration(hours: 1), (timer) async {
+        /// OPTIONAL for use custom notification
+        /// the notification id must be equals with AndroidConfiguration when you call configure() method.
+        scheduleSilence();
+      });
+    } else {
+      service.invoke('setAsForeground');
+      LocalNotifications instance = LocalNotifications();
+      instance.showNotificationBackground(
+        title: l10n.notificationTitleBackground,
+        body: l10n.notificationBodyBackground,
+      );
+      Timer.periodic(Duration(hours: 1), (timer) async {
+        /// OPTIONAL for use custom notification
+        /// the notification id must be equals with AndroidConfiguration when you call configure() method.
+
+        scheduleSilence();
+      });
     }
+  }
+}
+
+int day = DateTime.now().day;
+int month = DateTime.now().month;
+int year = DateTime.now().year;
+Map<String, DateTime> prayers = {};
+Map<String, String> scheduleStart = {};
+Map<String, String> scheduleEnd = {};
+
+@pragma('vm:entry-point')
+void createSilence() async {
+  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  final preferred = widgetsBinding.window.locales;
+  const supported = AppLocalizations.supportedLocales;
+  final locale = basicLocaleListResolution(preferred, supported);
+  final l10n = await AppLocalizations.delegate.load(locale);
+  LocalNotifications instance = LocalNotifications();
+  instance.showNotificationSilence(
+      title: l10n.notificationTitle, body: l10n.notificationBody);
+
+  await MuteSystemSounds().muteSystemSounds();
+}
+
+@pragma('vm:entry-point')
+void disableSilence() async {
+  await MuteSystemSounds().enableSystemSounds();
+  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  final preferred = widgetsBinding.window.locales;
+  const supported = AppLocalizations.supportedLocales;
+  final locale = basicLocaleListResolution(preferred, supported);
+  final l10n = await AppLocalizations.delegate.load(locale);
+  LocalNotifications instance = LocalNotifications();
+  await instance.showNotificationBackground(
+      title: l10n.notificationTitleBackground,
+      body: l10n.notificationBodyBackground);
+}
+
+Map currentValueStartMap = {
+  'Fajr': '5',
+  'Dhuhr': '5',
+  'Asr': '5',
+  'Maghrib': '5',
+  'Isha': '5'
+};
+Map currentValueEndMap = {
+  'Fajr': '40',
+  'Dhuhr': '40',
+  'Asr': '40',
+  'Maghrib': '40',
+  'Isha': '40'
+};
+
+Future<void> getValueStartMap() async {
+  try {
+    Map newStart = await WaitAndPreWaitStoreStart().readWaitAndPreWait();
+    //print('is this really a new start$newStart');
+    for (String key in newStart.keys) {
+      currentValueStartMap[key] = newStart[key];
+    }
+  } catch (e) {
+    //print(e);
+  }
+}
+
+Map oldValueStartMap = {};
+
+Future<void> getValueEndMap() async {
+  try {
+    Map newEnd = await WaitAndPreWaitStoreEnd().readWaitAndPreWait();
+    for (String key in newEnd.keys) {
+      currentValueEndMap[key] = newEnd[key];
+    }
+  } catch (e) {
+    //print(e);
+  }
+}
+
+void updateCurrentTime() {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  day = DateTime.now().day;
+  month = DateTime.now().month;
+  year = DateTime.now().year;
+}
+
+@pragma('vm:entry-point')
+void scheduleSilence() async {
+  try {
+    print('scheduleSilence called');
+    updateCurrentTime();
+    print(day);
+    TimingsLocal localinstance =
+        TimingsLocal(day: day, month: month, year: year);
+    await localinstance.getTimings();
+    prayers = localinstance.prayers;
+    await getValueStartMap();
+    await getValueEndMap();
+
+    CreateSchedule getSchedule = CreateSchedule(
+        prayers: prayers,
+        prewait: currentValueStartMap,
+        wait: currentValueEndMap);
+    await getSchedule.createSchedule();
+    scheduleStart = getSchedule.scheduleStart;
+    scheduleEnd = getSchedule.scheduleEnd;
+    AndroidAlarmManager.oneShotAt(
+        DateTime.parse(scheduleStart.values.toList()[0]),
+        99,
+        wakeup: false,
+        rescheduleOnReboot: true,
+        alarmClock: true,
+        allowWhileIdle: true,
+        exact: true,
+        createSilence);
+
+    AndroidAlarmManager.oneShotAt(
+        DateTime.parse(scheduleEnd.values.toList()[0]),
+        999,
+        wakeup: false,
+        rescheduleOnReboot: true,
+        alarmClock: true,
+        allowWhileIdle: true,
+        exact: true,
+        disableSilence);
+//
+
+    AndroidAlarmManager.oneShotAt(
+        DateTime.parse(scheduleStart.values.toList()[1]),
+        98,
+        wakeup: false,
+        rescheduleOnReboot: true,
+        alarmClock: true,
+        allowWhileIdle: true,
+        exact: true,
+        createSilence);
+
+    AndroidAlarmManager.oneShotAt(
+        DateTime.parse(scheduleEnd.values.toList()[1]),
+        998,
+        wakeup: false,
+        rescheduleOnReboot: true,
+        alarmClock: true,
+        allowWhileIdle: true,
+        exact: true,
+        disableSilence);
+
+    //
+
+    AndroidAlarmManager.oneShotAt(
+        DateTime.parse(scheduleStart.values.toList()[2]),
+        97,
+        wakeup: false,
+        rescheduleOnReboot: true,
+        alarmClock: true,
+        allowWhileIdle: true,
+        exact: true,
+        createSilence);
+
+    AndroidAlarmManager.oneShotAt(
+        DateTime.parse(scheduleEnd.values.toList()[2]),
+        997,
+        wakeup: false,
+        rescheduleOnReboot: true,
+        alarmClock: true,
+        allowWhileIdle: true,
+        exact: true,
+        disableSilence);
+
+    //
+
+    AndroidAlarmManager.oneShotAt(
+        DateTime.parse(scheduleStart.values.toList()[3]),
+        96,
+        wakeup: false,
+        rescheduleOnReboot: true,
+        alarmClock: true,
+        allowWhileIdle: true,
+        exact: true,
+        createSilence);
+
+    AndroidAlarmManager.oneShotAt(
+        DateTime.parse(scheduleEnd.values.toList()[3]),
+        996,
+        wakeup: false,
+        rescheduleOnReboot: true,
+        alarmClock: true,
+        allowWhileIdle: true,
+        exact: true,
+        disableSilence);
+
+    //
+
+    AndroidAlarmManager.oneShotAt(
+        DateTime.parse(scheduleStart.values.toList()[4]),
+        95,
+        wakeup: false,
+        rescheduleOnReboot: true,
+        alarmClock: true,
+        allowWhileIdle: true,
+        exact: true,
+        createSilence);
+
+    AndroidAlarmManager.oneShotAt(
+        DateTime.parse(scheduleEnd.values.toList()[4]),
+        995,
+        wakeup: false,
+        rescheduleOnReboot: true,
+        alarmClock: true,
+        allowWhileIdle: true,
+        exact: true,
+        disableSilence);
+  } catch (e) {
+    print('Failed to scheudle Silence times.');
   }
 }

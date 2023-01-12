@@ -90,9 +90,7 @@ class _HomeState extends State<Home> {
       for (String key in newStart.keys) {
         currentValueStartMap[key] = newStart[key];
       }
-    } catch (e) {
-      //print(e);
-    }
+    } catch (e) {}
   }
 
   Map oldValueStartMap = {};
@@ -103,9 +101,7 @@ class _HomeState extends State<Home> {
       for (String key in newEnd.keys) {
         currentValueEndMap[key] = newEnd[key];
       }
-    } catch (e) {
-      //print(e);
-    }
+    } catch (e) {}
   }
 
   Map oldValueEndMap = {};
@@ -1387,6 +1383,16 @@ class _HomeState extends State<Home> {
   }
 
   void scheduleSilence() async {
+    AndroidAlarmManager.cancel(99);
+    AndroidAlarmManager.cancel(98);
+    AndroidAlarmManager.cancel(97);
+    AndroidAlarmManager.cancel(96);
+    AndroidAlarmManager.cancel(95);
+    AndroidAlarmManager.cancel(999);
+    AndroidAlarmManager.cancel(998);
+    AndroidAlarmManager.cancel(997);
+    AndroidAlarmManager.cancel(996);
+    AndroidAlarmManager.cancel(995);
     try {
       for (int i = 0; i < 5; i++) {
         if (DateTime.parse(scheduleStart.values.toList()[i])

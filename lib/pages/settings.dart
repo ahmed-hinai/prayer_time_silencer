@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:prayer_time_silencer/main.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
-import 'package:prayer_time_silencer/services/alarm_scheduler.dart';
 import 'package:prayer_time_silencer/pages/home.dart';
 import 'package:workmanager/workmanager.dart';
 
@@ -56,21 +55,18 @@ class _SettingsState extends State<Settings> {
                   try {
                     if (MyAppState.isSchedulingON!) {
                       service.startService();
-                      try {
-                        AndroidAlarmManager.periodic(
-                            const Duration(hours: 10),
-                            12121,
-                            wakeup: false,
-                            rescheduleOnReboot: true,
-                            allowWhileIdle: true,
-                            exact: true,
-                            scheduleSilence);
-                      } catch (e) {}
                     } else {
+                      AndroidAlarmManager.cancel(99);
+                      AndroidAlarmManager.cancel(98);
+                      AndroidAlarmManager.cancel(97);
+                      AndroidAlarmManager.cancel(96);
+                      AndroidAlarmManager.cancel(95);
+                      AndroidAlarmManager.cancel(999);
+                      AndroidAlarmManager.cancel(998);
+                      AndroidAlarmManager.cancel(997);
+                      AndroidAlarmManager.cancel(996);
+                      AndroidAlarmManager.cancel(995);
                       service.invoke("stopService");
-                      try {
-                        AndroidAlarmManager.cancel(12121);
-                      } catch (e) {}
                     }
                   } catch (e) {}
                 });
