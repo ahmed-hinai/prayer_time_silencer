@@ -22,7 +22,7 @@ class TimingsLocal {
   late int year;
   late var data;
   Map<String, DateTime> prayers = {};
-  final TimingsStorage timingsstorage = TimingsStorage();
+  TimingsStorage timingsstorage = TimingsStorage();
 
   TimingsLocal({required this.day, required this.month, required this.year});
 
@@ -42,7 +42,8 @@ class TimingsLocal {
       prayers['Isha'] = DateTime.parse(
           '$year-${month.toString().length < 2 ? month.toString().padLeft(2, '0'.replaceAll('"', '')) : month}-${day.toString().length < 2 ? day.toString().padLeft(2, '0'.replaceAll('"', '')) : day} ${data[day - 1]['timings']['Isha'].substring(0, 5)}');
     } catch (e) {
-      //print(e);
+      print('the error is here why????');
+      print(e);
     }
   }
 }

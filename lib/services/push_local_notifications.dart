@@ -89,6 +89,29 @@ class LocalNotifications {
     );
   }
 
+  Future<void> showNotificationNoData({title, body}) async {
+    await localnotification.show(
+      888,
+      title,
+      body,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+            'foreground_silence', 'FOREGROUND SILENCE SERVICE',
+            icon: 'ic_bg_service_small',
+            ongoing: true,
+            enableVibration: false,
+            playSound: false,
+            color: Color.fromARGB(255, 216, 47, 47),
+            colorized: true,
+            showWhen: true,
+            visibility: NotificationVisibility.secret,
+            channelShowBadge: false,
+            timeoutAfter: 5400000,
+            number: 0),
+      ),
+    );
+  }
+
   Future<void> cancelNotification() async {
     await localnotification.cancelAll();
   }

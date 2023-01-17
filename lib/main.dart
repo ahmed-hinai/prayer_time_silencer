@@ -19,6 +19,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:prayer_time_silencer/services/get_prayer_times_local.dart';
 import 'package:prayer_time_silencer/services/wait_and_prewait_store.dart';
 import 'package:prayer_time_silencer/services/set_device_silent.dart';
+import 'package:workmanager/workmanager.dart';
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -137,6 +138,10 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     });
   }
 }
+
+const silencePeriodicTask =
+    "org.ahmedhinai.prayer_time_silencer.silencePeriodicTask";
+Workmanager workmanager = Workmanager();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -258,31 +263,30 @@ void onStart(ServiceInstance service) async {
   // bring to foreground
   if (service is AndroidServiceInstance) {
     if (await service.isForegroundService()) {
-      LocalNotifications instance = LocalNotifications();
-      instance.showNotificationBackground(
-        title: l10n.notificationTitleBackground,
-        body: l10n.notificationBodyBackground,
-      );
-      Timer.periodic(Duration(hours: 1), (timer) async {
-        /// OPTIONAL for use custom notification
-        /// the notification id must be equals with AndroidConfiguration when you call configure() method.
-        scheduleSilence();
-      });
-    } else {
-      service.invoke('setAsForeground');
-      LocalNotifications instance = LocalNotifications();
-      instance.showNotificationBackground(
-        title: l10n.notificationTitleBackground,
-        body: l10n.notificationBodyBackground,
-      );
-      Timer.periodic(Duration(hours: 1), (timer) async {
-        /// OPTIONAL for use custom notification
-        /// the notification id must be equals with AndroidConfiguration when you call configure() method.
+      await workmanager.initialize(callbackDispatcher, isInDebugMode: false);
+      await workmanager.registerPeriodicTask("1", silencePeriodicTask,
+          existingWorkPolicy: ExistingWorkPolicy.replace,
+          frequency: Duration(hours: 5),
+          initialDelay: Duration(seconds: 60));
 
-        scheduleSilence();
-      });
+      LocalNotifications instance = LocalNotifications();
+      instance.showNotificationBackground(
+        title: l10n.notificationTitleBackground,
+        body: l10n.notificationBodyBackground,
+      );
     }
   }
+}
+
+@pragma(
+    'vm:entry-point') // Mandatory if the App is obfuscated or using Flutter 3.1+
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    await scheduleSilence();
+    print(
+        "Native called background task: $silencePeriodicTask"); //simpleTask will be emitted here.
+    return Future.value(true);
+  });
 }
 
 int day = DateTime.now().day;
@@ -360,19 +364,13 @@ Future<void> getValueEndMap() async {
   }
 }
 
-void updateCurrentTime() {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  day = DateTime.now().day;
-  month = DateTime.now().month;
-  year = DateTime.now().year;
-}
-
 @pragma('vm:entry-point')
-void scheduleSilence() async {
+Future<void> scheduleSilence() async {
+  int day = DateTime.now().day;
+  int month = DateTime.now().month;
+  int year = DateTime.now().year;
   try {
     print('scheduleSilence called');
-    updateCurrentTime();
     print(day);
     TimingsLocal localinstance =
         TimingsLocal(day: day, month: month, year: year);
@@ -388,113 +386,67 @@ void scheduleSilence() async {
     await getSchedule.createSchedule();
     scheduleStart = getSchedule.scheduleStart;
     scheduleEnd = getSchedule.scheduleEnd;
-    AndroidAlarmManager.oneShotAt(
-        DateTime.parse(scheduleStart.values.toList()[0]),
-        99,
-        wakeup: false,
-        rescheduleOnReboot: true,
-        alarmClock: true,
-        allowWhileIdle: true,
-        exact: true,
-        createSilence);
+    try {
+      for (int i = 0; i < 5; i++) {
+        if (DateTime.parse(scheduleStart.values.toList()[i])
+            .isAfter(DateTime.now())) {
+          await AndroidAlarmManager.oneShotAt(
+              DateTime.parse(scheduleStart.values.toList()[i]),
+              100 - i,
+              wakeup: false,
+              rescheduleOnReboot: true,
+              alarmClock: true,
+              allowWhileIdle: true,
+              exact: true,
+              createSilence);
+        }
+        if (DateTime.parse(scheduleEnd.values.toList()[i])
+            .isAfter(DateTime.now())) {
+          await AndroidAlarmManager.oneShotAt(
+              DateTime.parse(scheduleEnd.values.toList()[i]),
+              1000 - i,
+              wakeup: false,
+              rescheduleOnReboot: true,
+              alarmClock: true,
+              allowWhileIdle: true,
+              exact: true,
+              disableSilence);
+        }
 
-    AndroidAlarmManager.oneShotAt(
-        DateTime.parse(scheduleEnd.values.toList()[0]),
-        999,
-        wakeup: false,
-        rescheduleOnReboot: true,
-        alarmClock: true,
-        allowWhileIdle: true,
-        exact: true,
-        disableSilence);
-//
-
-    AndroidAlarmManager.oneShotAt(
-        DateTime.parse(scheduleStart.values.toList()[1]),
-        98,
-        wakeup: false,
-        rescheduleOnReboot: true,
-        alarmClock: true,
-        allowWhileIdle: true,
-        exact: true,
-        createSilence);
-
-    AndroidAlarmManager.oneShotAt(
-        DateTime.parse(scheduleEnd.values.toList()[1]),
-        998,
-        wakeup: false,
-        rescheduleOnReboot: true,
-        alarmClock: true,
-        allowWhileIdle: true,
-        exact: true,
-        disableSilence);
-
-    //
-
-    AndroidAlarmManager.oneShotAt(
-        DateTime.parse(scheduleStart.values.toList()[2]),
-        97,
-        wakeup: false,
-        rescheduleOnReboot: true,
-        alarmClock: true,
-        allowWhileIdle: true,
-        exact: true,
-        createSilence);
-
-    AndroidAlarmManager.oneShotAt(
-        DateTime.parse(scheduleEnd.values.toList()[2]),
-        997,
-        wakeup: false,
-        rescheduleOnReboot: true,
-        alarmClock: true,
-        allowWhileIdle: true,
-        exact: true,
-        disableSilence);
-
-    //
-
-    AndroidAlarmManager.oneShotAt(
-        DateTime.parse(scheduleStart.values.toList()[3]),
-        96,
-        wakeup: false,
-        rescheduleOnReboot: true,
-        alarmClock: true,
-        allowWhileIdle: true,
-        exact: true,
-        createSilence);
-
-    AndroidAlarmManager.oneShotAt(
-        DateTime.parse(scheduleEnd.values.toList()[3]),
-        996,
-        wakeup: false,
-        rescheduleOnReboot: true,
-        alarmClock: true,
-        allowWhileIdle: true,
-        exact: true,
-        disableSilence);
-
-    //
-
-    AndroidAlarmManager.oneShotAt(
-        DateTime.parse(scheduleStart.values.toList()[4]),
-        95,
-        wakeup: false,
-        rescheduleOnReboot: true,
-        alarmClock: true,
-        allowWhileIdle: true,
-        exact: true,
-        createSilence);
-
-    AndroidAlarmManager.oneShotAt(
-        DateTime.parse(scheduleEnd.values.toList()[4]),
-        995,
-        wakeup: false,
-        rescheduleOnReboot: true,
-        alarmClock: true,
-        allowWhileIdle: true,
-        exact: true,
-        disableSilence);
+        if (DateTime.parse(scheduleStart.values.toList()[i])
+            .isBefore(DateTime.now())) {
+          await AndroidAlarmManager.oneShotAt(
+              DateTime.parse(scheduleStart.values.toList()[i])
+                  .add(const Duration(days: 1)),
+              100 - i,
+              wakeup: false,
+              rescheduleOnReboot: true,
+              alarmClock: true,
+              allowWhileIdle: true,
+              exact: true,
+              createSilence);
+        }
+        if (DateTime.parse(scheduleEnd.values.toList()[i])
+            .isBefore(DateTime.now())) {
+          await AndroidAlarmManager.oneShotAt(
+              DateTime.parse(scheduleEnd.values.toList()[i])
+                  .add(const Duration(days: 1)),
+              1000 - i,
+              wakeup: false,
+              rescheduleOnReboot: true,
+              alarmClock: true,
+              allowWhileIdle: true,
+              exact: true,
+              disableSilence);
+        }
+      }
+    } catch (e) {
+      print(e);
+    }
   } catch (e) {
     print('Failed to scheudle Silence times.');
+    LocalNotifications instance = LocalNotifications();
+    instance.showNotificationNoData(
+        title: 'no data', body: 'App couldnt retrieve local data');
   }
 }
